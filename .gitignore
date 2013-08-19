@@ -33,3 +33,10 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# TeX
+*.aux
+*.bbl
+*.blg
+*.out
+*.log

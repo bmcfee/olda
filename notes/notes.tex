@@ -68,7 +68,7 @@ is the mean of the joined segment $C_\ell \cup C_{\ell+1}$.
 
 We then define the ordinal linear discriminant analysis (OLDA) optimization accordingly:
 \[
-\max_W \trace\left[\left(W\trans S_W W\right)^{-1} W\trans S_O W\ \right],
+\max_W \trace\left[{\left(W\trans S_W W\right)}^{-1} W\trans S_O W\ \right],
 \]
 which again reduces to a generalized eigenvalue problem.  The only difference between OFDA and FDA is that the between-class scatter matrix is replaced with a temporally-constrained
 and localized variant, so the resulting optimization only tries to separate adjacent segments.  While the formulation above assumes a single ordering structure over labels (\ie, the
@@ -80,6 +80,20 @@ ridge-regularized variant
 S_W \mapsto S_W + \sigma I,
 \]
 for $\sigma > 0$.
+
+After solving for $W$, a data matrix $X \in \R^{d \times n}$ can then be transformed according to
+\[
+X \mapsto W\trans X,
+\]
+and subsequently clustered.
+
+\section{Clustering algorithm}
+
+\subsection{Graph-constrained agglomerative clustering}
+\subsection{Graph-constrained Hartigan clustering (cleanup)}
+
 \section{Features}
+
+\subsection{Latent repetition features}
 
 \end{document}
