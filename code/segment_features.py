@@ -17,6 +17,7 @@ REP_WIDTH   = 3
 REP_FILTER  = 7
 REP_COMPS   = 32
 
+DATA_PATH = '/home/bmcfee/git/olda/data/features/'
 def load_features(filename):
     '''
     Arguments:
@@ -118,21 +119,37 @@ def get_annotation(song, rootpath):
 # <codecell>
 
 def import_data(song, rootpath):
-        print song
-        X, B, Bt = load_features(song)
-        Y, T     = align_segmentation(get_annotation(song, rootpath), B)
-        Y        = list(np.unique(Y))
+        data_file = '%s/%s.pickle' % (DATA_PATH, os.path.splitext(os.path.basename(song))[0])
+
+        if os.path.exists(data_file):
+            with open(data_file, 'r') as f:
+                Data = pickle.load(f)
+                print song, 'cached!'
+        else:
+            try:
+                X, B, Bt = load_features(song)
+                Y, T     = align_segmentation(get_annotation(song, rootpath), B)
+                Y        = list(np.unique(Y))
+                
+                Data = {'features': X, 
+                        'beats': B, 
+                        'beat_times': Bt, 
+                        'filename': song, 
+                        'segment_times': T,
+                        'segments': Y}
+                print song, 'processed!'
         
-        return {'features': X, 
-                'beats': B, 
-                'beat_times': Bt, 
-                'filename': song, 
-                'segment_times': T,
-                'segments': Y}
+                with open(data_file, 'w') as f:
+                    pickle.dump( Data, f )
+            except:
+                print song, 'failed!'
+                Data = None
+
+        return Data
 
 # <codecell>
 
-def make_dataset(n=None, n_jobs=3, rootpath='/home/bmcfee/data/SALAMI/'):
+def make_dataset(n=30, n_jobs=4, rootpath='/home/bmcfee/data/SALAMI/'):
     
     files = sorted(filter(lambda x: os.path.exists(get_annotation(x, rootpath)), glob.glob('%s/audio/*.mp3' % rootpath)))
     if n is None:
@@ -142,6 +159,8 @@ def make_dataset(n=None, n_jobs=3, rootpath='/home/bmcfee/data/SALAMI/'):
     
     X, Y, B, Bt, T, F = [], [], [], [], [], []
     for d in data:
+        if d is None:
+            continue
         X.append(d['features'])
         Y.append(d['segments'])
         B.append(d['beats'])
