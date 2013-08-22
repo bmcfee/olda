@@ -63,6 +63,33 @@ def features(filename):
         odf = odf / odf.max()
         return odf
     
+
+    def compress_data(X, k):
+        sigma = np.cov(X)
+        e_vals, e_vecs = scipy.linalg.eig(sigma)
+        
+        e_vals = np.maximum(0.0, np.real(e_vals))
+        e_vecs = np.real(e_vecs)
+        
+        idx = np.argsort(e_vals)[::-1]
+        
+        e_vals = e_vals[idx]
+        e_vecs = e_vecs[:, idx]
+        
+        # Truncate to k dimensions
+        if k < len(e_vals):
+            e_vals = e_vals[:k]
+            e_vecs = e_vecs[:, :k]
+        
+        # Normalize by the leading singular value of X
+        Z = np.sqrt(e_vals.max())
+        
+        if Z > 0:
+            e_vecs = e_vecs / Z
+        
+        return e_vecs.T.dot(X)
+
+
     # Latent factor repetition features
     def repetition(X):
         R = librosa.segment.recurrence_matrix(X, 
@@ -76,10 +103,12 @@ def features(filename):
         # This should give an equivalent SVD, but resolves some numerical instabilities.
         P = P[P.any(axis=1)]
 
-        U, sigma, V = scipy.linalg.svd(P)
-        sigma = sigma / sigma.max()
-        
-        return np.dot(np.diag(sigma[:REP_COMPS]), V[:REP_COMPS,:])
+        return compress_data(P, REP_COMPS)
+
+#         U, sigma, V = scipy.linalg.svd(P)
+#         sigma = sigma / sigma.max()
+#         
+#         return np.dot(np.diag(sigma[:REP_COMPS]), V[:REP_COMPS,:])
         
 
     print '\t[1/4] loading audio'
