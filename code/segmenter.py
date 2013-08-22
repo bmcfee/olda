@@ -10,6 +10,7 @@ If run as a program, usage is:
 
 
 import sys
+import os
 
 import numpy as np
 import scipy.signal
@@ -81,6 +82,7 @@ def features(filename):
         return np.dot(np.diag(sigma[:REP_COMPS]), V[:REP_COMPS,:])
         
 
+    print '\t[1/4] loading audio'
     # Load the waveform
     y, sr = librosa.load(filename, sr=SR)
 
@@ -99,12 +101,14 @@ def features(filename):
     # Put on a log scale
     S = librosa.logamplitude(S)
     
+    print '\t[2/4] detecting beats'
     # Get the beats
     bpm, beats = librosa.beat.beat_track(onsets=onset(S), 
                                             sr=SR, 
                                             hop_length=HOP, 
                                             n_fft=N_FFT)
-    
+
+    print '\t[3/4] generating MFCC and chroma'
     # Get the MFCCs
     M = librosa.feature.mfcc(S, d=N_MFCC)
     
@@ -125,6 +129,7 @@ def features(filename):
     N = np.arange(float(len(beats)))
     
     # Beat-synchronous repetition features
+    print '\t[4/4] generating structure features'
     R_timbre = repetition(M)
     R_chroma = repetition(C)
     
@@ -202,12 +207,16 @@ def save_segments(outfile, S, beats):
 if __name__ == '__main__':
 
     # Load the features
+    print os.path.basename(sys.argv[1])
+
     X, beats    = features(sys.argv[1])
 
     # Find the segment boundaries
+    print '\tpredicting segments...'
     S           = get_segments(X)
 
     # Output lab file
+    print '\tsaving output to ', sys.argv[2]
     save_segments(sys.argv[2], S, beats)
 
     pass
