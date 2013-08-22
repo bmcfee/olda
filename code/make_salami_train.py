@@ -64,8 +64,9 @@ def import_data(song, rootpath, output_path):
         
                 with open(data_file, 'w') as f:
                     pickle.dump( Data, f )
-            except:
+            except Exception as e:
                 print song, 'failed!'
+                print e
                 Data = None
 
         return Data
