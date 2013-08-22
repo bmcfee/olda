@@ -4,7 +4,7 @@ import os
 from joblib import Parallel, delayed
 import cPickle as pickle
 
-from seg_features import process_audio
+from segmenter import features
 
 DATA_PATH = '/home/bmcfee/git/olda/data/features/'
 
@@ -50,7 +50,7 @@ def import_data(song, rootpath):
                 print song, 'cached!'
         else:
             try:
-                X, B     = process_audio(song)
+                X, B     = features(song)
                 Y, T     = align_segmentation(get_annotation(song, rootpath), B)
                 Y        = list(np.unique(Y))
                 
