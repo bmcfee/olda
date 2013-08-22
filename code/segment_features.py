@@ -138,7 +138,7 @@ def make_dataset(n=None, n_jobs=3, rootpath='/home/bmcfee/data/SALAMI/'):
     if n is None:
         n = len(files)
 
-    data = Parallel(n_jobs=n_jobs)(delayed(import_data(song, rootpath)) for song in files[:n])
+    data = Parallel(n_jobs=n_jobs)(delayed(import_data)(song, rootpath) for song in files[:n])
     
     X, Y, B, Bt, T, F = [], [], [], [], [], []
     for d in data:
