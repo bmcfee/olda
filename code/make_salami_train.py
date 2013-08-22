@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import numpy as np
 import glob
 import os
@@ -41,7 +43,7 @@ def get_annotation(song, rootpath):
 # <codecell>
 
 def import_data(song, rootpath, output_path):
-        data_file = '%s/%s.pickle' % (output_path, os.path.splitext(os.path.basename(song))[0])
+        data_file = '%s/features/%s.pickle' % (output_path, os.path.splitext(os.path.basename(song))[0])
 
         if os.path.exists(data_file):
             with open(data_file, 'r') as f:
