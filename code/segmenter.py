@@ -70,6 +70,10 @@ def features(filename):
                                             sym=False).astype(np.float32)
 
         P = scipy.signal.medfilt2d(librosa.segment.structure_feature(R), [1, REP_FILTER])
+        
+        # Discard empty rows.  
+        # This should give an equivalent SVD, but resolves some numerical instabilities.
+        P = P[P.any(axis=1)]
 
         U, sigma, V = scipy.linalg.svd(P)
         sigma = sigma / sigma.max()
