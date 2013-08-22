@@ -198,9 +198,10 @@ def get_segments(X, kmin=8, kmax=32):
 
 def save_segments(outfile, S, beats):
 
+    times = beats[S]
     with open(outfile, 'w') as f:
-        for idx, boundary in enumerate(beats[S], 1):
-            f.write('%.3f\tSegment %02d\n' % (boundary, idx))
+        for idx, (start, end) in enumerate(zip(times[:-1], times[1:]), 1):
+            f.write('%.3f\t%.3f\tSeg#%03d\n' % (start, end, idx))
     
     pass
 
