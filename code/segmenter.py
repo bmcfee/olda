@@ -240,7 +240,7 @@ def save_segments(outfile, S, beats):
 def process_arguments():
     parser = argparse.ArgumentParser(description='Music segmentation')
 
-    parser.add_argument(    '-w',
+    parser.add_argument(    '-t',
                             '--transform',
                             dest    =   'transform',
                             required = False,
