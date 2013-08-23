@@ -11,6 +11,7 @@ If run as a program, usage is:
 
 import sys
 import os
+import argparse
 
 import numpy as np
 import scipy.signal
@@ -236,19 +237,58 @@ def save_segments(outfile, S, beats):
     
     pass
 
+def process_arguments():
+    parser = argparse.ArgumentParser(description='Music segmentation')
+
+    parser.add_argument(    '-w',
+                            '--transform',
+                            dest    =   'transform',
+                            required = False,
+                            type    =   str,
+                            help    =   'npy file containing the linear projection',
+                            default =   None)
+
+    parser.add_argument(    'input_song',
+                            action  =   'store',
+                            help    =   'path to input audio data')
+
+    parser.add_argument(    'output_file',
+                            action  =   'store',
+                            help    =   'path to output segment file')
+
+    return vars(parser.parse_args(sys.argv[1:]))
+
+
+def load_transform(transform_file):
+
+    if transform_file is None:
+        W = np.eye(__DIMENSION)
+    else:
+        W = np.load(transform_file)
+
+    return W
+
+
 if __name__ == '__main__':
 
-    # Load the features
-    print os.path.basename(sys.argv[1])
+    parameters = process_arguments()
 
-    X, beats    = features(sys.argv[1])
+    # Load the features
+    print '- ', os.path.basename(parameters['input_song'])
+
+    X, beats    = features(parameters['input_song'])
+
+    # Load the transformation
+    W           = load_transform(parameters['transform'])
+    print '\tapplying transformation...'
+    X           = W.dot(X)
 
     # Find the segment boundaries
     print '\tpredicting segments...'
     S           = get_segments(X)
 
     # Output lab file
-    print '\tsaving output to ', sys.argv[2]
-    save_segments(sys.argv[2], S, beats)
+    print '\tsaving output to ', parameters['output_file']
+    save_segments(parameters['output_file'], S, beats)
 
     pass
