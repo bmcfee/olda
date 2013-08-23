@@ -19,6 +19,22 @@ import scipy.linalg
 # Requires librosa-develop branch
 import librosa
 
+SR          = 22050
+N_FFT       = 1024
+HOP         = 64
+N_MELS      = 128
+FMAX        = 8000
+
+REP_WIDTH   = 3
+REP_FILTER  = 7
+
+N_MFCC      = 32
+N_CHROMA    = 12
+N_REP       = 32
+
+# mfcc, chroma, repetitions for each, and 4 time features
+__DIMENSION = N_MFCC + N_CHROMA + 2 * N_REP + 4
+
 def features(filename):
     '''Feature-extraction for audio segmentation
     Arguments:
@@ -43,15 +59,6 @@ def features(filename):
     '''
     
     
-    SR          = 22050
-    HOP         = 64
-    N_MELS      = 128
-    N_MFCC      = 32
-    N_FFT       = 1024
-    FMAX        = 8000
-    REP_WIDTH   = 3
-    REP_FILTER  = 7
-    REP_COMPS   = 32
 
     # Onset strength function for beat tracking
     def onset(S):
@@ -103,13 +110,8 @@ def features(filename):
         # This should give an equivalent SVD, but resolves some numerical instabilities.
         P = P[P.any(axis=1)]
 
-        return compress_data(P, REP_COMPS)
+        return compress_data(P, N_REP)
 
-#         U, sigma, V = scipy.linalg.svd(P)
-#         sigma = sigma / sigma.max()
-#         
-#         return np.dot(np.diag(sigma[:REP_COMPS]), V[:REP_COMPS,:])
-        
 
     print '\t[1/4] loading audio'
     # Load the waveform
@@ -144,7 +146,7 @@ def features(filename):
     # Get the chroma
     C = librosa.feature.chromagram(np.abs(librosa.stft(y,   n_fft=N_FFT, 
                                                             hop_length=HOP)), 
-                                    sr=SR)
+                                    sr=SR, n_chroma=N_CHROMA)
     
     # augment the beat boundaries with the starting point
     beats = np.unique(np.concatenate([ [0], beats]))
