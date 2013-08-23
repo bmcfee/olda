@@ -40,3 +40,6 @@ nosetests.xml
 *.blg
 *.out
 *.log
+
+# Research
+data
