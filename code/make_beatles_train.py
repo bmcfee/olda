@@ -37,13 +37,13 @@ def align_segmentation(filename, beat_times):
 # <codecell>
 
 def get_annotation(song, rootpath):
-    song_num = os.path.splitext(os.path.split(song)[-1])[0]
-    return '%s/data/%s/parsed/textfile1_functions.txt' % (rootpath, song_num)
+    song_name = os.path.splitext(os.path.split(song)[-1])[0]
+    return '%s/%s.lab' % (rootpath, song_name)
 
 # <codecell>
 
 def import_data(song, rootpath, output_path):
-        data_file = '%s/features/SALAMI/%s.pickle' % (output_path, os.path.splitext(os.path.basename(song))[0])
+        data_file = '%s/features/beatles/%s.pickle' % (output_path, os.path.splitext(os.path.basename(song))[0])
 
         if os.path.exists(data_file):
             with open(data_file, 'r') as f:
@@ -73,9 +73,9 @@ def import_data(song, rootpath, output_path):
 
 # <codecell>
 
-def make_dataset(n=None, n_jobs=4, rootpath='SALAMI/', output_path='data/'):
+def make_dataset(n=None, n_jobs=4, rootpath='beatles/', output_path='data/'):
     
-    files = sorted(filter(lambda x: os.path.exists(get_annotation(x, rootpath)), glob.glob('%s/audio/*.mp3' % rootpath)))
+    files = sorted(filter(lambda x: os.path.exists(get_annotation(x, rootpath)), glob.glob('%s/*.mp3' % rootpath)))
     if n is None:
         n = len(files)
 
@@ -98,5 +98,5 @@ if __name__ == '__main__':
     salami_path = sys.argv[1]
     output_path = sys.argv[2]
     X, Y, B, T, F = make_dataset(rootpath=salami_path, output_path=output_path)
-    with open('%s/segment_data.pickle' % output_path, 'w') as f:
+    with open('%s/beatles_data.pickle' % output_path, 'w') as f:
         pickle.dump( (X, Y, B, T, F), f)
