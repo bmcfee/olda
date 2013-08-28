@@ -75,7 +75,11 @@ def import_data(song, rootpath, output_path):
 
 def make_dataset(n=None, n_jobs=4, rootpath='SALAMI/', output_path='data/'):
     
-    files = sorted(filter(lambda x: os.path.exists(get_annotation(x, rootpath)), glob.glob('%s/audio/*.mp3' % rootpath)))
+    EXTS = ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac']
+    files = []
+    for e in EXTS:
+        files.extend(filter(lambda x: os.path.exists(get_annotation(x, rootpath)), glob.iglob('%s/audio/*.%s' % (rootpath, e))))
+    files = sorted(files)
     if n is None:
         n = len(files)
 
