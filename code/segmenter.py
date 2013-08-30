@@ -21,7 +21,7 @@ import scipy.linalg
 import librosa
 
 SR          = 22050
-N_FFT       = 2048
+N_FFT       = 4096
 HOP         = 64
 N_MELS      = 128
 FMAX        = 8000
