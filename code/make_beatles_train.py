@@ -11,8 +11,8 @@ import cPickle as pickle
 from segmenter import features
 
 def get_all_files(basedir, ext='.wav'):
-    for root, dirs, files in os.walk(basedir):
-        files = sorted(glob.glob(os.path.join(basedir, '*'+ext)))
+    for root, dirs, files in os.walk(basedir, followlinks=True):
+        files = glob.glob(os.path.join(root, '*'+ext))
         for f in files:
             yield os.path.abspath(f)
     
@@ -76,8 +76,8 @@ def import_data(audio, label, rootpath, output_path):
 
 def make_dataset(n=None, n_jobs=16, rootpath='beatles/', output_path='data/'):
     
-    F_audio     = get_all_files(os.path.join(rootpath, 'audio'), '.wav')
-    F_labels    = get_all_files(os.path.join(rootpath, 'seglab'), '.lab')
+    F_audio     = sorted([_ for _ in get_all_files(os.path.join(rootpath, 'audio'), '.wav')])
+    F_labels    = sorted([_ for _ in get_all_files(os.path.join(rootpath, 'seglab'), '.lab')])
 
     assert(len(F_audio) == len(F_labels))
     if n is None:
