@@ -10,6 +10,13 @@ import cPickle as pickle
 
 from segmenter import features
 
+def get_all_files(basedir, ext='.wav'):
+    for root, dirs, files in os.walk(basedir):
+        files = sorted(glob.glob(os.path.join(basedir, '*'+ext)))
+        for f in files:
+            yield os.path.abspath(f)
+    
+
 def align_segmentation(filename, beat_times):
     '''Load a ground-truth segmentation, and align times to the nearest detected beats
     
@@ -36,36 +43,30 @@ def align_segmentation(filename, beat_times):
 
 # <codecell>
 
-def get_annotation(song, rootpath):
-    song_name = os.path.splitext(os.path.split(song)[-1])[0]
-    return '%s/%s.lab' % (rootpath, song_name)
-
-# <codecell>
-
-def import_data(song, rootpath, output_path):
-        data_file = '%s/features/beatles/%s.pickle' % (output_path, os.path.splitext(os.path.basename(song))[0])
+def import_data(audio, label, rootpath, output_path):
+        data_file = '%s/features/beatles/%s.pickle' % (output_path, os.path.splitext(os.path.basename(audio))[0])
 
         if os.path.exists(data_file):
             with open(data_file, 'r') as f:
                 Data = pickle.load(f)
-                print song, 'cached!'
+                print audio, 'cached!'
         else:
             try:
-                X, B     = features(song)
-                Y, T     = align_segmentation(get_annotation(song, rootpath), B)
+                X, B     = features(audio)
+                Y, T     = align_segmentation(label, B)
                 Y        = list(np.unique(Y))
                 
                 Data = {'features': X, 
                         'beats': B, 
-                        'filename': song, 
+                        'filename': audio, 
                         'segment_times': T,
                         'segments': Y}
-                print song, 'processed!'
+                print audio, 'processed!'
         
                 with open(data_file, 'w') as f:
                     pickle.dump( Data, f )
             except Exception as e:
-                print song, 'failed!'
+                print audio, 'failed!'
                 print e
                 Data = None
 
@@ -73,13 +74,16 @@ def import_data(song, rootpath, output_path):
 
 # <codecell>
 
-def make_dataset(n=None, n_jobs=4, rootpath='beatles/', output_path='data/'):
+def make_dataset(n=None, n_jobs=16, rootpath='beatles/', output_path='data/'):
     
-    files = sorted(filter(lambda x: os.path.exists(get_annotation(x, rootpath)), glob.glob('%s/*.mp3' % rootpath)))
-    if n is None:
-        n = len(files)
+    F_audio     = get_all_files(os.path.join(rootpath, 'audio'), '.wav')
+    F_labels    = get_all_files(os.path.join(rootpath, 'seglab'), '.lab')
 
-    data = Parallel(n_jobs=n_jobs)(delayed(import_data)(song, rootpath, output_path) for song in files[:n])
+    assert(len(F_audio) == len(F_labels))
+    if n is None:
+        n = len(F_audio)
+
+    data = Parallel(n_jobs=n_jobs)(delayed(import_data)(audio, label, rootpath, output_path) for (audio, label) in zip(F_audio[:n], F_labels[:n]))
     
     X, Y, B, T, F = [], [], [], [], []
     for d in data:
