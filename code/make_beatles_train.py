@@ -95,8 +95,8 @@ def make_dataset(n=None, n_jobs=4, rootpath='beatles/', output_path='data/'):
 
 
 if __name__ == '__main__':
-    salami_path = sys.argv[1]
+    beatles_path = sys.argv[1]
     output_path = sys.argv[2]
-    X, Y, B, T, F = make_dataset(rootpath=salami_path, output_path=output_path)
+    X, Y, B, T, F = make_dataset(rootpath=beatles_path, output_path=output_path)
     with open('%s/beatles_data.pickle' % output_path, 'w') as f:
         pickle.dump( (X, Y, B, T, F), f)

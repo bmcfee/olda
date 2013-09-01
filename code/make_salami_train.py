@@ -73,7 +73,7 @@ def import_data(song, rootpath, output_path):
 
 # <codecell>
 
-def make_dataset(n=None, n_jobs=4, rootpath='SALAMI/', output_path='data/'):
+def make_dataset(n=None, n_jobs=16, rootpath='SALAMI/', output_path='data/'):
     
     EXTS = ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac']
     files = []
