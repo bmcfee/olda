@@ -63,6 +63,7 @@ def get_beats(filename):
                                                 n_mels=N_MELS, 
                                                 fmax=FMAX).astype(np.float32)
 
+    print len(y), sr, S.shape
     # Normalize by peak energy
     S = S / S.max()
 
@@ -76,6 +77,7 @@ def get_beats(filename):
                                             hop_length=HOP, 
                                             n_fft=N_FFT)
 
+    print bpm, len(beats)
     beat_times = librosa.frames_to_time(beats, sr=SR, hop_length=HOP)
     return beats, beat_times
 
