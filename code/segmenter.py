@@ -163,7 +163,7 @@ def features(filename):
     # Beat-synchronous repetition features
     print '\t[4/4] generating structure features'
     R_timbre = repetition(M)
-    R_chroma = repetition(C)
+    R_chroma = repetition(librosa.segment.stack_memory(C))
     
     # Stack it all up
     X = np.vstack([M, C, R_timbre, R_chroma, B, B / duration, N, N / len(beats)])
