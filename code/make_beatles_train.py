@@ -32,7 +32,9 @@ def align_segmentation(filename, beat_times):
             true segment times
     '''
     
-    segment_times = np.loadtxt(filename, usecols=(0,))
+    # These labels have both begin and end times
+    segment_times = np.loadtxt(filename, usecols=(0,1))
+    segment_times = np.unique(segment_times)
 
     segment_beats = []
     for t in segment_times:
