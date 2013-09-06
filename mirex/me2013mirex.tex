@@ -13,7 +13,7 @@
 
 % Title.
 % ------
-\title{ME* entries for MIREX2013 structural segmentation and beat tracking}
+\title{DP1, MP1, MP2 entries for MIREX2013 structural segmentation and beat tracking}
 
 % Single address
 % To use with only one author or several with the same address
@@ -40,18 +40,18 @@
 \maketitle
 %
 \begin{abstract}
-This extended abstract describes the algorithms for beat tracking and structural segmentation submitted as ME\{1,2,3\} to MIREX2013.
+This extended abstract describes the algorithms for beat tracking and structural segmentation submitted as DP1 and MP1--2 to MIREX2013.
 \end{abstract}
 %
 \section{Introduction}
 \label{sec:introduction}
 
-This document describes the implementation details for MIREX2013 submissions ME1 (beat tracking) and ME2--3
+This document describes the implementation details for MIREX2013 submissions DP1 (beat tracking) and MP1--2
 (structural segmentation).  All algorithms are implemented in Python, and code will be made publicly available
 at the end of the evaluation.
 
-Section 2 describes the beat tracking method (ME1), which is subsequently used in the segmentation method 
-described in Section 3 (ME2).  Section 4 (ME3) describes a refinement of the ME1 method which uses a supervised
+Section 2 describes the beat tracking method (DP1), which is subsequently used in the segmentation method 
+described in Section 3 (MP1).  Section 4 (DP2) describes a refinement of the MP1 method which uses a supervised
 learning technique to optimally combine features for segmentation.
 
 \Cref{tab:parameters} includes a summary of the parameters of the various components.
@@ -81,9 +81,9 @@ Maximum number of segments  & $K_{\max}$ & 24\\
 \end{tabular}
 \end{table}
 
-\section{ME1: Beat tracking}
+\section{DP1: Beat tracking}
 
-The ME1 beat tracker is based on the dynamic programming method described by Ellis~\cite{ellis2007beat}.
+The DP1 beat tracker is based on the dynamic programming method described by Ellis~\cite{ellis2007beat}.
 The submitted version is based on the Python implementation provided as part of the {\tt librosa}\footnote{\url{http://github.com/bmcfee/librosa}} package, 
 which differs from the original matlab implementation by including a frame offset
 correction to compensate for the systemic lag observed by Davies \etal~\cite{davies2009evaluation}.
@@ -108,7 +108,7 @@ events.  In practice, we have observed significant improvements in accuracy over
 
 \label{sec:beats}
 
-\section{ME2: Unsupervised structural segmentation}
+\section{MP1: Unsupervised structural segmentation}
 
 The submitted methods for structural segmentation are based upon agglomerative clustering of beat-synchronous
 feature descriptors, similar to the method of Levy and Sandler~\cite{levy2008structural}.
@@ -211,7 +211,7 @@ Given the final clustering of beat-synchronous features, the segment boundaries 
 cluster-label disagreements, and converting back to the time index of the corresponding beat frames.  The
 0-marker and end-of-track time are included in the final segment predictions.
 
-\section{ME3: Supervised segmentation}
+\section{MP2: Supervised segmentation}
 \label{sec:supervised}
 
 The quality of the clustering produced in the previous section will ultimately depend on the computation of
@@ -262,7 +262,7 @@ on \url{http://archive.org/}~\cite{smith2011design}.  All annotations were extra
 parsed/textfile1\_functions.txt} files.
 
 After applying the learned transformation $X \mapsto W\trans X$, the clustering and pruning steps follow just as 
-in ME2.
+in MP1.
 
 \bibliography{refs}
 
