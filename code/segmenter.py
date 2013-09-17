@@ -140,21 +140,23 @@ def features(filename):
                                             hop_length=HOP, 
                                             n_fft=N_FFT)
 
+    # augment the beat boundaries with the starting point
+    beats = np.unique(np.concatenate([ [0], beats]))
+
     print '\t[3/4] generating MFCC and chroma'
     # Get the MFCCs
     M = librosa.feature.mfcc(S, d=N_MFCC)
-    
-    # Get the chroma
-    C = librosa.feature.chromagram(np.abs(librosa.stft(y,   n_fft=N_FFT, 
-                                                            hop_length=HOP)), 
-                                    sr=SR, n_chroma=N_CHROMA)
-    
-    # augment the beat boundaries with the starting point
-    beats = np.unique(np.concatenate([ [0], beats]))
-    
     # Beat-synchronize the features
     M = librosa.feature.sync(M, beats, aggregate=np.mean)
+    
+    # Get the chroma from the harmonic component
+    D = np.abs(librosa.stft(y, n_fft=N_FFT, hop_length=HOP)).astype(np.float32)
+    D = librosa.hpss.hpss_median(D, win_P=19, win_H=19, p=1.0)[0]
+
+    C = librosa.feature.chromagram(D, sr=SR, n_chroma=N_CHROMA)
+    # Beat-synchronize the features
     C = librosa.feature.sync(C, beats, aggregate=np.median)
+    
     
     # Time-stamp features
     B = librosa.frames_to_time(beats, sr=SR, hop_length=HOP)
