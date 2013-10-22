@@ -8,6 +8,8 @@ import sys
 from joblib import Parallel, delayed
 import cPickle as pickle
 
+import mir_eval
+
 from segmenter import features
 
 def align_segmentation(filename, beat_times):
@@ -25,7 +27,7 @@ def align_segmentation(filename, beat_times):
             true segment times
     '''
     
-    segment_times = np.loadtxt(filename, usecols=(0,))
+    segment_times = mir_eval.util.import_segment_boundaries(filename)
 
     segment_beats = []
     for t in segment_times:
