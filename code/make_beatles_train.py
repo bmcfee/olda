@@ -8,6 +8,8 @@ import sys
 from joblib import Parallel, delayed
 import cPickle as pickle
 
+import mir_eval
+
 from segmenter import features
 
 def get_all_files(basedir, ext='.wav'):
@@ -33,8 +35,7 @@ def align_segmentation(filename, beat_times):
     '''
     
     # These labels have both begin and end times
-    segment_times = np.loadtxt(filename, usecols=(0,1))
-    segment_times = np.unique(segment_times)
+    segment_times = mir_eval.util.import_segment_boundaries(filename)
 
     segment_beats = []
     for t in segment_times:
