@@ -20,9 +20,9 @@ import segmenter
 def features(input_song):
 
     with open(input_song, 'r') as f:
-        X, Y, B, T, F = pickle.load(f)
+        data = pickle.load(f)
 
-    return X, B
+    return data['features'], data['beats']
 
 def process_arguments():
     parser = argparse.ArgumentParser(description='Music segmentation with pre-computed features')
