@@ -54,7 +54,7 @@ def process_arguments():
 
 if __name__ == '__main__':
 
-    parameters = segmenter.process_arguments()
+    parameters = process_arguments()
 
     # Load the features
     print '- ', os.path.basename(parameters['input_song'])
