@@ -22,7 +22,7 @@ def features(input_song):
     with open(input_song, 'r') as f:
         data = pickle.load(f)
 
-    return data['features'], data['beats']
+    return data['features'], data['segment_times'], data['beats']
 
 def process_arguments():
     parser = argparse.ArgumentParser(description='Music segmentation with pre-computed features')
@@ -34,6 +34,13 @@ def process_arguments():
                             type    =   str,
                             help    =   'npy file containing the linear projection',
                             default =   None)
+
+    parser.add_argument(    '-g',
+                            '--gnostic',
+                            dest    =   'gnostic',
+                            action  =   'store_true',
+                            required=   False,
+                            help    =   'Operate with knowledge of k')
 
     parser.add_argument(    'input_song',
                             action  =   'store',
@@ -52,7 +59,7 @@ if __name__ == '__main__':
     # Load the features
     print '- ', os.path.basename(parameters['input_song'])
 
-    X, beats    = features(parameters['input_song'])
+    X, Y, beats    = features(parameters['input_song'])
     # Load the transformation
     W           = segmenter.load_transform(parameters['transform'])
     print '\tapplying transformation...'
@@ -60,7 +67,10 @@ if __name__ == '__main__':
 
     # Find the segment boundaries
     print '\tpredicting segments...'
-    S           = segmenter.get_segments(X)
+    if parameters['gnostic']:
+        S           = segmenter.get_segments(X, kmin=len(Y)-1, kmax=len(Y))
+    else:
+        S           = segmenter.get_segments(X)
 
     # Output lab file
     print '\tsaving output to ', parameters['output_file']
