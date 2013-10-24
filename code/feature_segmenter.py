@@ -27,8 +27,8 @@ def features(input_song):
 
 def get_num_segs(duration, MIN_SEG=10.0, MAX_SEG=45.0):
 
-    kmin = np.floor(duration / MAX_SEG)
-    kmax = np.ceil(duration / MIN_SEG)
+    kmin = max(1, np.floor(duration / MAX_SEG).astype(int))
+    kmax = max(1, np.ceil(duration / MIN_SEG).astype(int))
 
     return kmin, kmax
 
