@@ -31,7 +31,8 @@ def evaluate_set(SETNAME, agg=True):
     truth = load_annotations('%s/truth/%s/*' % (ROOTPATH, SETNAME))
     
     #algos = map(os.path.basename, sorted(glob.glob('%s/predictions/%s/*' % (ROOTPATH, SETNAME))))
-    algos = map(os.path.basename, sorted(glob.glob('%s/predictions/%s/gnostic_*' % (ROOTPATH, SETNAME))))
+    #algos = map(os.path.basename, sorted(glob.glob('%s/predictions/%s/gnostic_*' % (ROOTPATH, SETNAME))))
+    algos = map(os.path.basename, sorted(glob.glob('%s/predictions/%s/dyn_*' % (ROOTPATH, SETNAME))))
     
     scores = {}
     for A in algos:
@@ -129,7 +130,7 @@ def get_worst_examples(SETNAME, perfs, algorithm, idx, k=10):
 # <codecell>
 
 for alg in sorted(ind_perfs_beatles.keys()):
-    get_worst_examples('BEATLES', ind_perfs_beatles, alg, 8, 5)
+    get_worst_examples('BEATLES', ind_perfs_beatles, alg, 10, 5)
     print
 
 # <codecell>
@@ -146,7 +147,7 @@ plot_boxes(ind_perfs_beatles)
 
 # <codecell>
 
-save_results('/home/bmcfee/git/olda/data/beatles_scores.csv', perfs_beatles)
+save_results('/home/bmcfee/git/olda/data/beatles_scores_dyn.csv', perfs_beatles)
 
 # <codecell>
 
@@ -154,21 +155,7 @@ pprint(perfs_beatles)
 
 # <codecell>
 
-g_perfs_beatles = evaluate_set('BEATLES', agg=True)
-
-# <codecell>
-
-pprint(zip(METRICS, perfs_beatles['unsup'], g_perfs_beatles['gnostic_unsup']))
-pprint(zip(METRICS, perfs_beatles['sup'], g_perfs_beatles['gnostic_sup']))
-
-# <codecell>
-
-g_perfs_salami = evaluate_set('SALAMI', agg=True)
-
-# <codecell>
-
-pprint(zip(METRICS, perfs_salami['unsup'], g_perfs_salami['gnostic_unsup']))
-pprint(zip(METRICS, perfs_salami['sup'], g_perfs_salami['gnostic_sup']))
+perfs_salami = evaluate_set('SALAMI', agg=True)
 
 # <codecell>
 
@@ -184,5 +171,5 @@ pprint(perfs_salami)
 
 # <codecell>
 
-save_results('/home/bmcfee/git/olda/data/salami_scores.csv', perfs_salami)
+save_results('/home/bmcfee/git/olda/data/salami_scores_dyn.csv', perfs_salami)
 

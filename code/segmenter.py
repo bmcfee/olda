@@ -270,6 +270,11 @@ def load_transform(transform_file):
 
     return W
 
+def get_num_segs(duration, MIN_SEG=10.0, MAX_SEG=45.0):
+    kmin = max(1, np.floor(duration / MAX_SEG).astype(int))
+    kmax = max(2, np.ceil(duration / MIN_SEG).astype(int))
+
+    return kmin, kmax
 
 if __name__ == '__main__':
 
@@ -287,7 +292,8 @@ if __name__ == '__main__':
 
     # Find the segment boundaries
     print '\tpredicting segments...'
-    S           = get_segments(X)
+    kmin, kmax  = get_num_segs(beats[-1])
+    S           = get_segments(X, kmin=kmin, kmax=kmax)
 
     # Output lab file
     print '\tsaving output to ', parameters['output_file']
