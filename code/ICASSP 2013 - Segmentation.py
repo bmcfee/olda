@@ -30,7 +30,8 @@ def evaluate_set(SETNAME, agg=True):
     
     truth = load_annotations('%s/truth/%s/*' % (ROOTPATH, SETNAME))
     
-    algos = map(os.path.basename, sorted(glob.glob('%s/predictions/%s/*' % (ROOTPATH, SETNAME))))
+    #algos = map(os.path.basename, sorted(glob.glob('%s/predictions/%s/*' % (ROOTPATH, SETNAME))))
+    algos = map(os.path.basename, sorted(glob.glob('%s/predictions/%s/gnostic_*' % (ROOTPATH, SETNAME))))
     
     scores = {}
     for A in algos:
@@ -153,7 +154,21 @@ pprint(perfs_beatles)
 
 # <codecell>
 
-perfs_salami = evaluate_set('SALAMI', agg=True)
+g_perfs_beatles = evaluate_set('BEATLES', agg=True)
+
+# <codecell>
+
+pprint(zip(METRICS, perfs_beatles['unsup'], g_perfs_beatles['gnostic_unsup']))
+pprint(zip(METRICS, perfs_beatles['sup'], g_perfs_beatles['gnostic_sup']))
+
+# <codecell>
+
+g_perfs_salami = evaluate_set('SALAMI', agg=True)
+
+# <codecell>
+
+pprint(zip(METRICS, perfs_salami['unsup'], g_perfs_salami['gnostic_unsup']))
+pprint(zip(METRICS, perfs_salami['sup'], g_perfs_salami['gnostic_sup']))
 
 # <codecell>
 
