@@ -232,8 +232,8 @@ def make_rep_feature_plot(M):
     R = librosa.segment.recurrence_matrix(M, k=np.sqrt(1./M.shape[1]), sym=False).astype(np.float)
     
     Rskew = librosa.segment.structure_feature(R, pad=True)
-    #Rskew = np.roll(Rskew, M.shape[1], axis=0)
-    Rskew = Rskew[:R.shape[0]-1] + Rskew[-1:R.shape[0]+1:-1]
+    Rskew = np.roll(Rskew, M.shape[1], axis=0)
+    
     
     Rfilt = scipy.signal.medfilt2d(Rskew, kernel_size=(1, 7))
     #Rfilt = Rfilt[Rfilt.sum(axis=1) > 0, :]
@@ -260,7 +260,7 @@ def make_rep_feature_plot(M):
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
     subplot(144)
-    myimshow(Rlatent, origin='upper', cmap='PuOr_r'), title('Latent repetition')
+    myimshow(Rlatent, origin='upper', cmap='PiYG_r'), title('Latent repetition')
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     xlabel('Beat'), ylabel('Factor')
     tight_layout()

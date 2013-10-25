@@ -11,6 +11,7 @@
 \usepackage{cleveref}
 \usepackage{booktabs}
 \usepackage{brian}
+\usepackage{microtype}
 
 % Title.
 % ------
@@ -55,36 +56,89 @@ Music information retrieval, automatic segmentation, supervised learning
 \label{sec:intro}
 
 \subsection{Our contributions}
+Our primary contribution in this work is the ordinal linear discriminant analysis (OLDA) technique to learn a 
+feature transformation which is optimized for musical segmentation, or more generally, time-series clustering.
+As a secondary contribution, we propose a latent structural repetition descriptor, which facilitates learning and
+generalization across multiple examples when using self-similarity features.
 
 \subsection{Related work}
 \label{sec:related}
 
-\cite{levy2008structural}
-\cite{serra2012unsupervised}
+The core segmentation algorithm we use is most similar to the constrained clustering method developed by Levy and
+Sandler~\cite{levy2008structural}, which incorporated sequential consistency constraints to a hidden Markov model over
+segment transitions. The method proposed here is much simpler, and uses a sequentially constrained agglomerative
+clustering algorithm to produce a hierarchical segmentation over the entire track in linear time. Because the
+resulting segmentation is hierarchical, the number of segments need not be specified in advance.
+
+The proposed latent structural repetition features are adapted from the work of Serr\`{a}
+\etal~\cite{serra2012unsupervised}. While qualitatively similar, we apply different filtering and
+beat synchronization techniques to better preserve segment boundaries.
 
 \section{Music segmentation}
 \label{sec:features}
+Partitioning a song into \emph{segments} is a somewhat ill-posed task, and the criteria for deciding what is or
+is not a segment may vary across genres or styles.  Pop music relies heavily on a verse/chorus structure, while jazz
+may more naturally be structured by changing instrumentation (\ie, which player is currently soloing).  
+The former case is well characterized by detecting repeated chord sequences, and the latter is better modeled
+by finding sequences of locally homogenous timbre.
 
-\subsection{Repetition features}
-\cite{serra2012unsupervised}
+We follow the general strategy used by Serr\`{a} \etal, which first converts global structural (repetitions) into
+local feature vectors, and then segmented by detecting salient changes in the resulting time-series. 
+When combined with the learning algorithm described in \Cref{sec:olda}, this framework facilitates the 
+combination of global and local information to simultaneously capture both high-level structure and low-level 
+consistency.
+
+\subsection{Latent structural repetition}
+\Cref{fig:rep} outlines our approach for computing structural repetition features from audio, which is adapted from
+Serr\`{a} \etal~\cite{serra2012unsupervised}.  First, we extract beat-synchronous features (\eg, MFCCs or chroma) 
+from the signal, and build a binary self-similarity matrix by linking each beat to its nearest neighbors in feature
+space (\cref{fig:rep}, left). With beat-synchronous features, repeated sections appear as diagonals in the self-similarity
+matrix. To easily detect repeated sections, the self-similarity matrix is skewed by shifting the $i$th column down by $i$ rows
+(\cref{fig:rep}, second subplot), thus converting diagonals into horizontals.
+
+Using nearest-neighbor linkage to compute the self-similarity matrix results in spurious links and skipped connections. 
+Serr\`{a}~\etal{} resolve this by convolving with a Gaussian filter, which effectively suppresses noise, but also blurs
+segment boundaries. Instead, we propose to use a horizontal median filter, which (for odd window length) produces a binary matrix,
+suppresses links which do not belong to long sequences of repetitions, and fills in skipped conections (\cref{fig:rep}, third
+subplot). Moreover, the median filter cleanly preserves edges, resulting in more precise segment boundary detection.
+
+Let $R \in \R^{2t \times t}$ denote the median-filtered, skewed self-similarity matrix over $t$ beats.  
+Note that different songs have different durations, so the dimensionality of $R$ changes from one song to this. 
+This makes it difficult to directly model and generalize across collections of songs.
+However, methods which depend on distances between column-vectors ${\|R_{\cdot, i} - R_{\cdot, j}\|}$ --- 
+\eg, Euclidean clustering or novelty curve peak-picking --- are invariant to unitary transformations.
+
+Rather than use $R$ directly as a feature matrix, we propose to use \emph{latent structural repetition} features, which compress each
+any song's $R$ matrix to a fixed-dimension representation.  Let $R = U\Sigma V\trans$ denote the singular value decomposition of $R$,
+with (descending) singular values $\sigma_i$. The latent structural repetition feature (\cref{fig:rep}, right) is defined as the 
+matrix $L$:
+\[
+L \defeq \sigma_1^{-1} U\trans R = \sigma_1^{-1} \Sigma V\trans.
+\]
+Truncating $L$ to $d < 2t$ rows preserves the most important factors, and normalizing by $\sigma_1$ ensures that
+features maintain the same relative magnitude independent of track duration.  As depicted in \cref{fig:rep}, small values of $d$
+suffice to capture high-level structure: in the given example, the key structural components are indicated by the value of the first
+factor.
 
 \begin{figure*}[t]
 \centering%
-\includegraphics[width=0.95\textwidth]{figs/rep}
+\includegraphics[width=\textwidth]{figs/rep}
+\vspace{-2\baselineskip}
 \caption{Repetition features derived from \emph{Tupac Shakur -- Trapped}. 
 From left to right: a binary self-similarity ($k$-nearest-neighbor) 
 matrix over beats; 
 the time-lag transformation of the self-similarity matrix; 
 the result of the horizontal median filter;
-the derived 8-dimensional latent factor representation.\label{fig:rep}}
+the derived 8-dimensional latent factor representation (best viewed in color).\label{fig:rep}}
 \end{figure*}
 
+\subsection{Multiple features}
 
 \subsection{Constrained clustering}
 \cite{ward1963hierarchical}
 \cite{pedregosa2011scikit}
 
-\subsection{$k$-selection}
+\subsection{Choosing the number of segments}
 
 \cite{akaike1973information}
 
@@ -95,20 +149,20 @@ the derived 8-dimensional latent factor representation.\label{fig:rep}}
 
 \section{Evaluation}
 \label{sec:eval}
-
-\subsection{Implementation}
+All proposed methods are implemented in Python with the \texttt{librosa} package.\footnote{The implementation is
+publicly available at \url{https://github.com/bmcfee/olda}.}
 
 \subsection{Data and metrics}
 To evaluate the proposed methods, we evaluate predicted segmentations on two publicly available datasets:
 \begin{description}\addtolength{\itemsep}{-0.25\baselineskip}%
-\item[Beatles-ISO] 179 songs by the
+\item[Beatles-ISO] 179 songs by the 
 Beatles,\footnote{\url{http://isophonics.net/content/reference-annotations-beatles}} and
 \item[SALAMI-free] 253 songs from the SALAMI dataset~\cite{smith2011design} which are freely available on the 
 Internet Archive~\cite{nieto2013convex}.
 \end{description}
 Both datasets provide labels for each annotated segment (\eg, \emph{verse} or \emph{intro}), but we ignore these
-labels in this set of experiments. Compared to the Beatles corpus, SALAMI has a great deal more variety in terms of
-musical style, genre, and instrumentation, and is therefore a more challenging dataset.
+labels in this set of experiments. Compared to the Beatles corpus, SALAMI has much more diversity of style, genre, 
+instrumentation, and artists, and is therefore a more challenging dataset.
 
 On both datasets, we compare to the method of Serr\`{a} \etal~\cite{serra2012unsupervised}, which achieved the
 highest performance in the 2012 MIREX structural segmentation evaluation~\cite{Downie2008}.\footnote{Listed as SMGA1
@@ -123,10 +177,10 @@ We report the following standard segmentation metrics:
 \footnote{For a detailed description of segmentation metrics, see
 \url{http://www.music-ir.org/mirex/wiki/2013:Structural\_Segmentation}.}
 \begin{description}\addtolength{\itemsep}{-0.25\baselineskip}%
-\item[boundary retrieval] Precision, recall, and F-measure at both 0.5s and 3s resolution,
-\item[normalized conditional entropy] (NCE) Over- and under-segmentation scores $S_O$ and $S_U$, and their harmonic mean $S_F$,
-\item[frame clustering] Precision ($P_C$), recall ($R_C$), and F-measure ($F_C$) of detecting whether any two frames belong to the same
-segment.
+\item[Boundary retrieval] Precision, recall, and F-measure at both 0.5s and 3s resolution,
+\item[Normalized conditional entropy] (NCE) Over- and under-segmentation scores $S_O$ and $S_U$, and their harmonic
+mean $S_F$, and
+\item[Frame clustering] Precision ($P_C$), recall ($R_C$), and F-measure ($F_C$) of detecting whether any two frames belong to the same segment.
 \end{description}
 Note that boundary retrieval and frame clustering metrics are highly sensitive to changes in the number of
 predicted segments, upon which multiple human annotators often disagree for the same track. 
@@ -139,7 +193,7 @@ Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE 
 \Cref{tab:results:beatles,tab:results:salami} list the results for the Beatles-ISO and SALAMI-free, respectively.
 In \cref{tab:results:beatles}, the SMGA method performs best on the majority of metrics,\footnote{We
 note that the SMGA parameters were optimized to perform well on this set (listed as
-Beatles-B)~\cite{serra2012unsupervised}, whereas the OLDA and unweighted methods had parameters fixed a priori.}
+Beatles-B)~\cite{serra2012unsupervised}, whereas the OLDA and unweighted methods had fixed parameter settings.}
 however, the scores on the NCE metrics ($S_O, S_U, S_F$) are roughly comparable between SMGA and OLDA ($S_F$ of 0.829
 and 0.813, respectively). 
 This suggests that SMGA and the proposed methods are producing segmentations of comparable quality, but 
@@ -208,6 +262,7 @@ SI-PLCA~\hfill\cite{weiss2011unsupervised}
 \begin{figure*}
 \centering%
 \includegraphics[width=0.95\textwidth]{figs/w}%
+\vspace{-\baselineskip}%
 \caption{OLDA transformations $W\trans$ learned on Beatles-ISO and SALAMI-free. Each row corresponds to a projection
 direction, and the rows are ordered by decreasing importance from top to bottom.\label{fig:w}}
 \end{figure*}
