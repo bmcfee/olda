@@ -132,15 +132,22 @@ the result of the horizontal median filter;
 the derived 8-dimensional latent factor representation (best viewed in color).\label{fig:rep}}
 \end{figure*}
 
-\subsection{Multiple features}
-
 \subsection{Constrained clustering}
-\cite{ward1963hierarchical}
-\cite{pedregosa2011scikit}
+Given a feature matrix $X \in \R^{D\times t}$, we produce a hierarchical clustering of the columns of $X$ by using the
+linkage-constrained variant of Ward's agglomerative clustering algorithm~\cite{ward1963hierarchical} as implemented in
+Scikit-learn~\cite{pedregosa2011scikit}.  Specifically, for each column $i$, linkage constraints are introduced for $(i-1, i)$ and
+$(i, i+1)$, so the linkage graph forms a chain.  The full hierarchy is computed after $\Oh(t)$ merge operations, so the 
+algorithm runs in $\Oh(dt)$ time. 
 
 \subsection{Choosing the number of segments}
+The hierarchical clustering produces segmentations for all numbers of segments $1 \leq k \leq t$.  While a multi-scale view can 
+be useful in some scenarios --- such as interactive data exploration --- standard evaluations rely on choosing a particular value 
+of $k$. To select $k$ automatically, we compute the cost (quantization error) of each pruning within a plausible bounded range 
+$k_{\min} \leq k \leq k_{\max}$.  The bounds are determined dynamically by assuming average minimum and maximum segment duration 
+of 10s and 45s.  An AIC correction~\cite{akaike1973information} is then applied to each pruning (assuming a spherical Gaussian
+model for each segment) and the global minimizer is selected.
 
-\cite{akaike1973information}
+\subsection{Multiple features}
 
 \section{Ordinal linear discriminant analysis}
 \label{sec:olda}
@@ -155,8 +162,7 @@ publicly available at \url{https://github.com/bmcfee/olda}.}
 \subsection{Data and metrics}
 To evaluate the proposed methods, we evaluate predicted segmentations on two publicly available datasets:
 \begin{description}\addtolength{\itemsep}{-0.25\baselineskip}%
-\item[Beatles-ISO] 179 songs by the 
-Beatles,\footnote{\url{http://isophonics.net/content/reference-annotations-beatles}} and
+\item[Beatles-ISO] 179 songs by the Beatles~\cite{harte2010towards}, and
 \item[SALAMI-free] 253 songs from the SALAMI dataset~\cite{smith2011design} which are freely available on the 
 Internet Archive~\cite{nieto2013convex}.
 \end{description}
@@ -174,13 +180,13 @@ representation. To ensure fairness of evaluation, the OLDA model used on the Bea
 SALAMI-free data, and vice versa.
 
 We report the following standard segmentation metrics:
-\footnote{For a detailed description of segmentation metrics, see
-\url{http://www.music-ir.org/mirex/wiki/2013:Structural\_Segmentation}.}
+\footnote{For a detailed description of segmentation metrics, see~\cite{mirexstructure}.}
 \begin{description}\addtolength{\itemsep}{-0.25\baselineskip}%
 \item[Boundary retrieval] Precision, recall, and F-measure at both 0.5s and 3s resolution,
 \item[Normalized conditional entropy] (NCE) Over- and under-segmentation scores $S_O$ and $S_U$, and their harmonic
 mean $S_F$, and
-\item[Frame clustering] Precision ($P_C$), recall ($R_C$), and F-measure ($F_C$) of detecting whether any two frames belong to the same segment.
+\item[Frame clustering] Precision ($P_C$), recall ($R_C$), and F-measure ($F_C$) of detecting whether any two frames 
+belong to the same segment.
 \end{description}
 Note that boundary retrieval and frame clustering metrics are highly sensitive to changes in the number of
 predicted segments, upon which multiple human annotators often disagree for the same track. 
@@ -213,7 +219,7 @@ especially for the combined F-scores.
 The fact that the model parameters were transferred across datasets suggests some degree of universality of the
 learned transformation.  \Cref{fig:w} illustrates the transformation matrices $W$ learned on each dataset. Both
 transformations exhibit qualitatively similar block structure, and place most of the mass on the MFCC components
-(upper-left blocks) while suppressing the raw chroma features and placing intermediate weight on the repetition
+(upper-left blocks) while suppressing chroma and placing intermediate weight on the repetition
 features.
 
 
@@ -272,6 +278,7 @@ direction, and the rows are ordered by decreasing importance from top to bottom.
 
 
 \bibliographystyle{IEEEbib}
+\cleardoublepage%
 \bibliography{refs}
 
 \end{document}
