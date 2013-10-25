@@ -1,0 +1,104 @@
+% Template for ICASSP-2013 paper; to be used with:
+%          spconf.sty  - ICASSP/ICIP LaTeX style file, and
+%          IEEEbib.bst - IEEE bibliography style file.
+% --------------------------------------------------------------------------
+\documentclass{article}
+\usepackage{spconf,amsmath,graphicx}
+\usepackage{graphicx}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{booktabs}
+\usepackage{brian}
+
+% Title.
+% ------
+\title{Learning to segment songs with ordinal linear discriminant analysis}
+%
+% Single address.
+% ---------------
+% \name{Author Names\thanks{Thanks to XYZ agency for funding.}}
+% \address{Author Affiliations}
+%
+% For example:
+% ------------
+%\address{School\\
+%   Department\\
+%   Address}
+%
+% Two addresses (uncomment and modify for two-address case).
+% ----------------------------------------------------------
+\twoauthors%
+ {Brian McFee}{ Center for Jazz Studies\\
+      Columbia University\\
+  \texttt{brm2132@columbia.edu}}%
+ {Daniel P.W. Ellis}{
+  LabROSA, Department of Electrical Engineering\\
+      Columbia University\\
+  \texttt{dpwe@columbia.edu}}
+%
+\begin{document}
+%\ninept
+%
+\maketitle
+%
+\begin{abstract}
+Segmentation is sweet
+\end{abstract}
+%
+\begin{keywords}
+Music information retrieval, automatic segmentation, supervised learning
+\end{keywords}
+%
+\section{Introduction}
+\label{sec:intro}
+
+\subsection{Our contributions}
+
+\section{Related work}
+\label{sec:related}
+
+\section{Evaluation}
+\label{sec:eval}
+
+\subsection{Implementation}
+
+\subsection{Results}
+
+\begin{table}
+\centering
+\caption{Beat tracker performance on SMC Dataset2.\label{tab:results:smc2}}
+\begin{tabular}{lrrr}
+\toprule%
+Algorithm   &    AMLt              & F-measure         & Inf.\ gain\\
+\hline
+sum-Full        & 0.312             & 0.362             & 0.84  \\
+sum-Harmonic    & 0.313             & 0.363             & 0.84  \\
+sum-Percussive  & 0.304             & 0.357             & 0.81  \\
+sum-Low-rank    & 0.310             & 0.357             & 0.84  \\
+\hline
+med-Full        & 0.336             & 0.374             & 0.92  \\
+med-Harmonic    & 0.329             & 0.368             & 0.92  \\
+med-Percussive  & \textbf{0.364}    & 0.381             & \textbf{0.95}\\
+med-Low-rank    & 0.331             & 0.376             & 0.90  \\
+\hline
+Ellis\hfill~\cite{ellis2007beat} 
+                & 0.208             & 0.352             & 0.62  \\
+B\"{o}ck \& Schedl\hfill~\cite{bock2011enhanced} 
+                & 0.261             & \textbf{0.401}    & 0.91  \\
+Klapuri \etal\hfill~\cite{klapuri2006analysis} 
+                & 0.339             & 0.362             & 0.92  \\
+\bottomrule%
+\end{tabular}
+
+\end{table}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+
+\bibliographystyle{IEEEbib}
+\bibliography{refs}
+
+\end{document}
