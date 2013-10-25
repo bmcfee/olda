@@ -173,3 +173,33 @@ pprint(perfs_salami)
 
 save_results('/home/bmcfee/git/olda/data/salami_scores_dyn.csv', perfs_salami)
 
+# <headingcell level=1>
+
+# Figures
+
+# <codecell>
+
+model_beatles = np.load('/home/bmcfee/git/olda/data/model_olda_beatles.npy')
+model_salami  = np.load('/home/bmcfee/git/olda/data/model_olda_salami.npy')
+
+# <codecell>
+
+figure(figsize=(10,4))
+subplot(121)
+imshow(model_beatles, aspect='auto', interpolation='none', cmap='PuOr_r')
+title('$W^\mathsf{T}$ - Beatles-ISO')
+yticks([])
+ylabel('$\leftarrow$ Decreasing $\lambda$')
+xticks([0, 32, 44, 76, 108], ['MFCC', 'Chroma', 'Rep-M', 'Rep-C', 'Time'], rotation=-30, horizontalalignment='left')
+colorbar()
+
+subplot(122)
+imshow(model_salami, aspect='auto', interpolation='none', cmap='PuOr_r')
+title('$W^\mathsf{T}$ - SALAMI-Free')
+colorbar()
+yticks([])
+xticks([0, 32, 44, 76, 108], ['MFCC', 'Chroma', 'Rep-M', 'Rep-C', 'Time'], rotation=-30, horizontalalignment='left')
+
+tight_layout()
+savefig('/home/bmcfee/git/olda/paper/figs/w.pdf', format='pdf', pad_inches=0, transparent=True)
+
