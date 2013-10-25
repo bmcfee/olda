@@ -184,7 +184,7 @@ model_salami  = np.load('/home/bmcfee/git/olda/data/model_olda_salami.npy')
 
 # <codecell>
 
-figure(figsize=(10,4))
+figure(figsize=(12,4))
 subplot(121)
 imshow(model_beatles, aspect='auto', interpolation='none', cmap='PuOr_r')
 title('$W^\mathsf{T}$ - Beatles-ISO')
