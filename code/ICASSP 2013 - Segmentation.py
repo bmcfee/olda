@@ -189,7 +189,7 @@ subplot(121)
 imshow(model_beatles, aspect='auto', interpolation='none', cmap='PuOr_r')
 title('$W^\mathsf{T}$ - Beatles-ISO')
 yticks([])
-ylabel('$\leftarrow$ Decreasing $\lambda$')
+ylabel('Importance')
 xticks([0, 32, 44, 76, 108], ['MFCC', 'Chroma', 'Rep-M', 'Rep-C', 'Time'], rotation=-30, horizontalalignment='left')
 colorbar()
 

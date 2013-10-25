@@ -56,25 +56,92 @@ Music information retrieval, automatic segmentation, supervised learning
 
 \subsection{Our contributions}
 
-\section{Related work}
+\subsection{Related work}
 \label{sec:related}
+
+\section{Feature representations}
+\label{sec:features}
+
+\subsection{Repetition features}
+
+\section{Ordinal linear discriminant analysis}
+\label{sec:olda}
 
 \section{Evaluation}
 \label{sec:eval}
 
 \subsection{Implementation}
 
+\subsection{Data and metrics}
+To evaluate the proposed methods, we evaluate predicted segmentations on two publicly available datasets:
+\begin{description}\addtolength{\itemsep}{-0.25\baselineskip}%
+\item[Beatles-ISO] 179 songs by the
+Beatles,\footnote{\url{http://isophonics.net/content/reference-annotations-beatles}} and
+\item[SALAMI-free] 253 songs from the SALAMI dataset~\cite{smith2011design} which are freely available on the 
+Internet Archive~\cite{nieto2013convex}.
+\end{description}
+Both datasets provide labels for each annotated segment (\eg, \emph{verse} or \emph{intro}), but we ignore these
+labels in this set of experiments.
+On both datasets, we compare to the method of Serr\`{a} \etal~\cite{serra2012unsupervised}, which achieved the
+highest performance in the 2012 MIREX structural segmentation evaluation~\cite{Downie2008}.\footnote{Listed as SMGA1
+at \url{http://www.music-ir.org/mirex/wiki/2012:MIREX2012\_Results}.}  On SALAMI-Free, we include previously
+published results for the C-NMF~\cite{nieto2013convex} and SI-LPCA~\cite{weiss2011unsupervised}.
+
+For both datasets, we evaluate both the unweighted feature representation (\emph{Unweighted}) and the OLDA-optimized
+representation. To ensure fairness of evaluation, the OLDA model used on the Beatles-ISO was trained using only
+SALAMI-free data, and vice versa.
+
+We report the following standard segmentation metrics:
+\footnote{For a detailed description of segmentation metrics, see
+\url{http://www.music-ir.org/mirex/wiki/2013:Structural\_Segmentation}.}
+\begin{description}\addtolength{\itemsep}{-0.25\baselineskip}%
+\item[boundary retrieval] Precision, recall, and F-measure at both 0.5s and 3s resolution,
+\item[normalized conditional entropy] (NCE) Over- and under-segmentation scores $S_O$ and $S_U$, and their harmonic mean $S_F$,
+\item[frame clustering] Precision ($P_C$), recall ($R_C$), and F-measure ($F_C$) of detecting whether any two frames belong to the same
+segment.
+\end{description}
+Frames are sampled at a frequency of 10Hz between segment boundaries for the NCE and frame clustering metrics.
+
+
 \subsection{Results}
 \label{sec:results}
+\Cref{tab:results:beatles,tab:results:salami} list the results for the Beatles-ISO and SALAMI-free, respectively.
+In \cref{tab:results:beatles}, the SMGA method performs best on the majority of metrics,\footnote{We
+note that the SMGA parameters were optimized to perform well on this set (listed as
+Beatles-B)~\cite{serra2012unsupervised}, whereas the OLDA and unweighted methods had parameters fixed a priori.}
+however, the scores on the NCE metrics ($S_O, S_U, S_F$) are roughly comparable between SMGA and OLDA ($S_F$ of 0.829
+and 0.813, respectively). 
+This suggests that SMGA and the proposed methods are producing segmentations of comparable quality, but 
+different levels of granularity.
+However, both the unweighted and OLDA models achieve much higher accuracy for boundary detection at 0.5s resolution,
+indicating that the proposed features are better at preserving clean segment boundaries.  
 
-\begin{table*}[t]
+On SALAMI-free (\cref{tab:results:salami}), the trends are qualitatively similar as in Beatles-ISO, but the OLDA
+model achieves the highest scores on most metrics (and all F-scores). This is likely due to the proposed model's
+ability to incorporate disparate feature types (timbre, pitch, and time), whereas the SMGA and C-NMF models are
+limited to using only pitch. 
+Because SALAMI-free includes a wider variety of styles and instrumentations than the Beatles-ISO set, 
+timbre can be an especially important cue for detecting salient change-points.
+
+In both datasets, OLDA training generally provides substantial improvements in accuracy over the unweighted model, 
+especially for the combined F-scores.
+The fact that the model parameters were transferred across datasets suggests some degree of universality of the
+learned transformation.  \Cref{fig:w} illustrates the transformation matrices $W$ learned on each dataset. Both
+transformations exhibit qualitatively similar block structure, and place most of the mass on the MFCC components
+(upper-left blocks) while suppressing the raw chroma features and placing intermediate weight on the repetition
+features.
+
+
+
+\begin{table*}
 \centering
-\caption{Segmentation performance on Beatles-ISO. OLDA was trained on the SALAMI-free corpus.\label{tab:results:beatles}}
+\caption{Segmentation scores on Beatles-ISO. OLDA was trained on SALAMI-free. Best scores are
+indicated in bold.\label{tab:results:beatles}}
 \begin{tabular}{lrrrrrrrrrrrr}
 \toprule%
-Algorithm   &   $P_{0.5s}$ & $R_{0.5s}$ & $F_{0.5s}$ & $P_{3s}$     & $R_{3s}$  & $F_{3s}$   & $S_O$ & $S_U$ & $S_F$ & $P_L$& $R_L$& $F_L$\\
+Algorithm   &   $P_{0.5s}$ & $R_{0.5s}$ & $F_{0.5s}$ & $P_{3s}$     & $R_{3s}$  & $F_{3s}$   & $S_O$ & $S_U$ & $S_F$ & $P_C$& $R_C$& $F_C$\\
 \hline
-Native      &   \textbf{0.446} & 0.390 & 0.408 & 0.704   & 0.603 & 0.640 & \textbf{0.842} & 0.755 & 0.791 & \textbf{0.780} & 0.613 & 0.668\\
+Unweighted  &   \textbf{0.446} & 0.390 & 0.408 & 0.704   & 0.603 & 0.640 & \textbf{0.842} & 0.755 & 0.791 & \textbf{0.780} & 0.613 & 0.668\\
 OLDA        &   0.438 & \textbf{0.447} & \textbf{0.434} & 0.685   & 0.680 & 0.670 & 0.828 & 0.808 & 0.813 & 0.744 & 0.686 & 0.694\\
 \hline
 SMGA~\hfill\cite{serra2012unsupervised}
@@ -84,14 +151,15 @@ SMGA~\hfill\cite{serra2012unsupervised}
 \end{tabular}
 \end{table*}
 
-\begin{table*}[t]
+\begin{table*}
 \centering
-\caption{Segmentation performance on SALAMI-free. OLDA was trained on the Beatles-ISO corpus.\label{tab:results:salami}}
+\caption{Segmentation scores on SALAMI-free. OLDA was trained on Beatles-ISO. Best scores are
+indicated in bold.\label{tab:results:salami}}
 \begin{tabular}{lrrrrrrrrrrrr}
 \toprule%
-Algorithm       &   $P_{0.5s}$ & $R_{0.5s}$ & $F_{0.5s}$ & $P_{3s}$     & $R_{3s}$   & $F_{3s}$   & $S_O$ & $S_U$ & $S_F$ & $P_L$& $R_L$& $F_L$\\
+Algorithm       &   $P_{0.5s}$ & $R_{0.5s}$ & $F_{0.5s}$ & $P_{3s}$     & $R_{3s}$   & $F_{3s}$   & $S_O$ & $S_U$ & $S_F$ & $P_C$& $R_C$& $F_C$\\
 \hline
-Native  & 0.400 & 0.364 & 0.372 & \textbf{0.610} & 0.557 & 0.570 & \textbf{0.812} & 0.795 & 0.794 & \textbf{0.666} & 0.652 & 0.626\\
+Unweighted  & 0.400 & 0.364 & 0.372 & \textbf{0.610} & 0.557 & 0.570 & \textbf{0.812} & 0.795 & 0.794 & \textbf{0.666} & 0.652 & 0.626\\
 OLDA    & \textbf{0.406} & \textbf{0.407} & \textbf{0.396} & \textbf{0.610} & 0.611 & \textbf{0.597} & 0.804 & 0.829 & \textbf{0.808} & 0.640 & 0.707 & \textbf{0.640}\\
 \hline
 SMGA~\hfill\cite{serra2012unsupervised}
@@ -106,7 +174,7 @@ SI-PLCA~\hfill\cite{weiss2011unsupervised}
 \end{tabular}
 \end{table*}
 
-\begin{figure*}[t]
+\begin{figure*}
 \centering%
 \includegraphics[width=0.95\textwidth]{figs/w}%
 \caption{OLDA transformations $W\trans$ learned on Beatles-ISO and SALAMI-free. Each row corresponds to a projection
