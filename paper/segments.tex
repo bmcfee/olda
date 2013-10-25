@@ -11,7 +11,6 @@
 \usepackage{cleveref}
 \usepackage{booktabs}
 \usepackage{brian}
-\usepackage{microtype}
 
 % Title.
 % ------
@@ -45,7 +44,10 @@
 \maketitle
 %
 \begin{abstract}
-Segmentation is sweet
+This paper describes a supervised learning algorithm which optimizes a feature representation for temporally constrained clustering. 
+The proposed method is applied to music segmentation, in which a song is partitioned into functional or
+locally homogeneous segments (\eg, verse, chorus or solo).  Experimental results on the SALAMI and Beatles corpora demonstrate
+that the proposed method efficiently integrates disparate feature modalities, and improves segmentation accuracy.
 \end{abstract}
 %
 \begin{keywords}
@@ -112,9 +114,9 @@ Rather than use $R$ directly as a feature matrix, we propose to use \emph{latent
 any song's $R$ matrix to a fixed-dimension representation.  Let $R = U\Sigma V\trans$ denote the singular value decomposition of $R$,
 with (descending) singular values $\sigma_i$. The latent structural repetition feature (\cref{fig:rep}, right) is defined as the 
 matrix $L$:
-\[
-L \defeq \sigma_1^{-1} U\trans R = \sigma_1^{-1} \Sigma V\trans.
-\]
+\begin{equation}
+L \defeq \sigma_1^{-1} U\trans R = \sigma_1^{-1} \Sigma V\trans.\label{eq:latent-rep}
+\end{equation}
 Truncating $L$ to $d < 2t$ rows preserves the most important factors, and normalizing by $\sigma_1$ ensures that
 features maintain the same relative magnitude independent of track duration.  As depicted in \Cref{fig:rep}, small values of $d$
 suffice to capture high-level structure: in the given example, the key structural components are indicated by the value of the first
@@ -163,18 +165,55 @@ sequences. Finally, the time features act as an implicit quadratic regularizatio
 balanced segmentations.
 
 All features can be stacked together into a single feature matrix $X \in \R^{D\times t}$, and clustered via the method described
-above. However, the relative magnitudes and importances of each features are not necessarily calibrated to produce optimal
-clusterings. 
+above. However, the relative magnitude and importance of each feature is not calibrated to produce optimal clusterings. 
 
 \section{Ordinal linear discriminant analysis}
 \label{sec:olda}
+To improve the feature representation for clustering, we propose a simple adaptation of Fisher's linear discriminant
+analysis (LDA)~\cite{fisher1936use}.  In its multi-class form, LDA takes as input a labeled collection of data $x_i \in \R^D$
+and class labels $y_i \in \{1,2,\ldots, C\}$, and produces a linear transformation $W \in \R^{D\times D}$ that simultaneously 
+maximizes the distance between class centroids, and minimizes the variance of each class 
+individually~\cite{fukunaga1990introduction}. This is accomplished by solving the following optimization:
+\begin{equation}
+W \defeq \argmin_W \trace\left( {(W\trans A_\text{B} W)}^{-1} W\trans A_\text{W} W \right) \label{eq:fda},
+\end{equation}
+where $A_\text{W}$ and $A_\text{B}$ are the \emph{within-} and \emph{between}-class scatter matrices:
+\begin{align*}
+A_\text{W} & \defeq \sum_c \sum_{i : y_i = c} (x_i - \mu_c)(x_i - \mu_c)\trans\\
+A_\text{B} & \defeq \sum_c n_c (\mu_c - \mu)(\mu_c - \mu)\trans,
+\end{align*}
+$\mu$ denotes the mean across all classes, $\mu_c$ is the mean of class $c$, and $n_c$ denotes the number of examples in class $c$.
+\Cref{eq:fda} can be efficiently solved as a generalized eigenvalue problem over the two scatter matrices.
 
-\cite{fisher1936use, fukunaga1990introduction}
+In the context of segmentation, it would be naturally to synthesize class labels from segment identifiers on an annotated training
+set, so that the columns of $X$ belonging to the first segment are assigned to class 1, the second segment to class 2, and so on.
+However, interpreting each segment as a distinct class could result in a repeated verse being treated as two distinct classes which 
+cannot (and should not) be separated.  We therefore propose to relax the problem by only separating \emph{adjacent} segments 
+$(c, c+1)$, and replacing $A_B$ with the resulting \emph{ordinal scatter matrix}:
+\begin{align*}
+A_\text{O} &\defeq \sum_{c < C} n_c (\mu_c - \mu_{c+}) (\mu_c - \mu_{c+})\trans\\
+\mu_{c+} &\defeq \frac{n_c \mu_c + n_{c+1} \mu_{c+1} }{n_c + n_{c+1}}.
+\end{align*}
+
+Because scatter matrices are accumulated linearly, it is also straightforward to generalize this across multiple training examples
+by summing their individual contributions.  Finally, because $A_\text{O}$ may be rank-degenerate, we include a smoothing parameter
+$\lambda > 0$.  The resulting OLDA optimization takes the form:
+\begin{equation}
+W \defeq \argmin_W \trace\left( {(W\trans (A_\text{O} + \lambda I) W)}^{-1} W\trans A_\text{W} W \right) \label{eq:olda},
+\end{equation}
+which again can be solved efficiently as a generalized eigenvalue problem.
 
 \section{Evaluation}
 \label{sec:eval}
-All proposed methods are implemented in Python with the \texttt{librosa} package.\footnote{The implementation is
-available at \url{https://github.com/bmcfee/olda}.}
+All proposed methods are implemented in Python with the \texttt{librosa} package.\footnote{Source code is
+available at \url{https://github.com/bmcfee/olda}.}  OLDA models were trained by running the entire segmentation algorithm for
+$\lambda \in \{10^0, 10^1, \dots, 10^7\}$, and choosing the value which achieved the highest mean $S_F$ score (see below) on 
+the training set.
+
+All signals were downsampled to 22KHz mono, and analyzed with a 93ms window and 3ms hop.  MFCCs are generated from 128 Mel bands
+with an 8KHz cutoff. We take 32 MFCCs and 12 chroma bins; repetition features are calculated with $2\sqrt{t}$ nearest neighbors,
+median-filtered with a window width of 7, and projected to 32 dimensions each.  Including the four time-stamp features, the combined
+representation has dimension $D=112$. Beat tracking was done using the \emph{med-full} method described in~\cite{mcfee2014beat}.
 
 \subsection{Data and metrics}
 To evaluate the proposed methods, we evaluate predicted segmentations on two publicly available datasets:
@@ -188,9 +227,8 @@ labels in this set of experiments. Compared to the Beatles corpus, SALAMI has mu
 instrumentation, and artists, and is therefore a more challenging dataset.
 
 On both datasets, we compare to the method of Serr\`{a} \etal~\cite{serra2012unsupervised}, which achieved the
-highest performance in the 2012 MIREX structural segmentation evaluation~\cite{Downie2008}.\footnote{Listed as SMGA1
-at \url{http://www.music-ir.org/mirex/wiki/2012:MIREX2012\_Results}.}  On SALAMI-Free, we include previously
-published results for the C-NMF~\cite{nieto2013convex} and SI-LPCA~\cite{weiss2011unsupervised}.
+highest performance in the 2012 MIREX structural segmentation evaluation~\cite{Downie2008}.
+On SALAMI-Free, we include previously published results for the C-NMF~\cite{nieto2013convex} and SI-LPCA~\cite{weiss2011unsupervised}.
 
 For both datasets, we evaluate both the unweighted feature representation (\emph{Unweighted}) and the OLDA-optimized
 representation. To ensure fairness of evaluation, the OLDA model used on the Beatles-ISO was trained using only
@@ -236,8 +274,7 @@ especially for the combined F-scores.
 The fact that the model parameters were transferred across datasets suggests some degree of universality of the
 learned transformation.  \Cref{fig:w} illustrates the transformation matrices $W$ learned on each dataset. Both
 transformations exhibit qualitatively similar block structure, and place most of the mass on the MFCC components
-(upper-left blocks) while suppressing chroma and placing intermediate weight on the repetition
-features.
+(upper-left blocks) while suppressing chroma and placing intermediate weight on the repetition features.
 
 
 
@@ -246,6 +283,7 @@ features.
 % \caption{Segmentation scores on Beatles-ISO. OLDA was trained on SALAMI-free. Best scores are indicated in bold.\label{tab:results:beatles}}
 \caption{Segmentation results.  Best scores are indicated in bold. For Beatles-ISO, OLDA was trained on SALAMI-free. For
 SALAMI-free, OLDA was trained on Beatles-ISO.  C-NMF and SI-LPCA scores are quoted from Nieto and Jehan~\cite{nieto2013convex}.\label{tab:results}}
+\small
 \begin{tabular}{lrrrrrrrrrrrr}
 \multicolumn{13}{c}{Beatles-ISO}\\
 \toprule%
@@ -258,7 +296,7 @@ SMGA~\hfill\cite{serra2012unsupervised}
             &   0.358 & 0.393 & 0.370 & \textbf{0.769}   & \textbf{0.808} & \textbf{0.780} & 0.811 & \textbf{0.858} & \textbf{0.829} & 0.702 & \textbf{0.798} &
             \textbf{0.729}\\
 \bottomrule%
-\\
+% \\
 % \end{tabular}
 % \end{table*}
 
@@ -286,20 +324,19 @@ SI-PLCA~\hfill\cite{weiss2011unsupervised}
 \end{tabular}
 \end{table*}
 
-\begin{figure*}
-\centering%
-\includegraphics[width=0.95\textwidth]{figs/w}%
+\begin{figure}[h]
+\flushright%
+\includegraphics[width=\columnwidth]{figs/w}%
 \vspace{-\baselineskip}%
-\caption{OLDA transformations $W\trans$ learned on Beatles-ISO and SALAMI-free. Each row corresponds to a projection
-direction, and the rows are ordered by decreasing importance from top to bottom.\label{fig:w}}
-\end{figure*}
+\caption{OLDA models $W\trans$ learned on Beatles-ISO and SALAMI-free. Each row corresponds to a direction, 
+and the rows are ordered by decreasing importance from top to bottom.\label{fig:w}}
+\end{figure}
 
 \section{Conclusion}
 \label{sec:conclusion}
 
 
 \bibliographystyle{IEEEbib}
-\cleardoublepage%
 \bibliography{refs}
 
 \end{document}
