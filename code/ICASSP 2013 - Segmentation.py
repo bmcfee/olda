@@ -179,6 +179,95 @@ save_results('/home/bmcfee/git/olda/data/salami_scores_dyn.csv', perfs_salami)
 
 # <codecell>
 
+import librosa
+import scipy.signal
+import functools
+
+# <codecell>
+
+def get_beat_mfccs(filename):
+    y, sr = librosa.load(filename)
+    
+    S = librosa.feature.melspectrogram(y, sr, n_fft=2048, hop_length=64, n_mels=128, fmax=8000)
+    
+    tempo, beats = librosa.beat.beat_track(y, sr, n_fft=2048, hop_length=64)
+    
+    M = librosa.feature.mfcc(S, d=32)
+    M = librosa.feature.sync(M, beats)
+    return M
+
+# <codecell>
+
+def compress_data(X, k):
+    sigma = np.cov(X)
+    e_vals, e_vecs = scipy.linalg.eig(sigma)
+        
+    e_vals = np.maximum(0.0, np.real(e_vals))
+    e_vecs = np.real(e_vecs)
+        
+    idx = np.argsort(e_vals)[::-1]
+        
+    e_vals = e_vals[idx]
+    e_vecs = e_vecs[:, idx]
+        
+    # Truncate to k dimensions
+    if k < len(e_vals):
+        e_vals = e_vals[:k]
+        e_vecs = e_vecs[:, :k]
+        
+    # Normalize by the leading singular value of X
+    Z = np.sqrt(e_vals.max())
+        
+    if Z > 0:
+        e_vecs = e_vecs / Z
+        
+    return e_vecs.T.dot(X)
+
+# <codecell>
+
+def make_rep_feature_plot(M):
+    
+    myimshow = functools.partial(imshow, aspect='auto', interpolation='nearest', origin='lower', cmap='gray_r')
+    
+    R = librosa.segment.recurrence_matrix(M, k=np.sqrt(1./M.shape[1]), sym=False).astype(np.float)
+    
+    Rskew = librosa.segment.structure_feature(R, pad=True)
+    
+    Rfilt = scipy.signal.medfilt2d(Rskew, kernel_size=(1, 7))
+    #Rfilt = Rfilt[Rfilt.sum(axis=1) > 0, :]
+    
+    Rlatent = compress_data(Rfilt, 8)
+    
+    figure(figsize=(12,3))
+    subplot(141)
+    myimshow(R), title('Self-similarity')
+    xlabel('Beat'), ylabel('Beat')
+    
+    subplot(142)
+    myimshow(Rskew), title('Skewed similarity')
+    xlabel('Beat'), ylabel('Lag')
+    
+    subplot(143)
+    myimshow(Rfilt), title('Median-filtering')
+    xlabel('Beat'), ylabel('Lag')
+    
+    subplot(144)
+    myimshow(Rlatent, origin='upper', cmap='PuOr_r'), title('Latent repetition')
+    xlabel('Beat'), ylabel('Factor')
+    tight_layout()
+    
+    savefig('/home/bmcfee/git/olda/paper/figs/rep.pdf', format='pdf', pad_inches=0, transparent=True)
+
+# <codecell>
+
+M = get_beat_mfccs('/home/bmcfee/data/CAL500/mp3/2pac-trapped.mp3')
+
+# <codecell>
+
+make_rep_feature_plot(M[:,:200])
+
+# <codecell>
+
 model_beatles = np.load('/home/bmcfee/git/olda/data/model_olda_beatles.npy')
 model_salami  = np.load('/home/bmcfee/git/olda/data/model_olda_salami.npy')
 
