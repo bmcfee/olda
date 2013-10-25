@@ -59,23 +59,39 @@ Music information retrieval, automatic segmentation, supervised learning
 \subsection{Related work}
 \label{sec:related}
 
-\section{Feature representations}
+\cite{levy2008structural}
+\cite{serra2012unsupervised}
+
+\section{Music segmentation}
 \label{sec:features}
 
 \subsection{Repetition features}
+\cite{serra2012unsupervised}
 
 \begin{figure*}[t]
 \centering%
 \includegraphics[width=0.95\textwidth]{figs/rep}
-\caption{From left to right: a binary self-similarity ($k$-nearest-neighbor) 
+\caption{Repetition features derived from \emph{Tupac Shakur -- Trapped}. 
+From left to right: a binary self-similarity ($k$-nearest-neighbor) 
 matrix over beats; 
 the time-lag transformation of the self-similarity matrix; 
 the result of the horizontal median filter;
-8-dimensional latent factor representation.\label{fig:rep}}
+the derived 8-dimensional latent factor representation.\label{fig:rep}}
 \end{figure*}
+
+
+\subsection{Constrained clustering}
+\cite{ward1963hierarchical}
+\cite{pedregosa2011scikit}
+
+\subsection{$k$-selection}
+
+\cite{akaike1973information}
 
 \section{Ordinal linear discriminant analysis}
 \label{sec:olda}
+
+\cite{fisher1936use, fukunaga1990introduction}
 
 \section{Evaluation}
 \label{sec:eval}
@@ -91,7 +107,9 @@ Beatles,\footnote{\url{http://isophonics.net/content/reference-annotations-beatl
 Internet Archive~\cite{nieto2013convex}.
 \end{description}
 Both datasets provide labels for each annotated segment (\eg, \emph{verse} or \emph{intro}), but we ignore these
-labels in this set of experiments.
+labels in this set of experiments. Compared to the Beatles corpus, SALAMI has a great deal more variety in terms of
+musical style, genre, and instrumentation, and is therefore a more challenging dataset.
+
 On both datasets, we compare to the method of Serr\`{a} \etal~\cite{serra2012unsupervised}, which achieved the
 highest performance in the 2012 MIREX structural segmentation evaluation~\cite{Downie2008}.\footnote{Listed as SMGA1
 at \url{http://www.music-ir.org/mirex/wiki/2012:MIREX2012\_Results}.}  On SALAMI-Free, we include previously
@@ -110,7 +128,10 @@ We report the following standard segmentation metrics:
 \item[frame clustering] Precision ($P_C$), recall ($R_C$), and F-measure ($F_C$) of detecting whether any two frames belong to the same
 segment.
 \end{description}
-Frames are sampled at a frequency of 10Hz between segment boundaries for the NCE and frame clustering metrics.
+Note that boundary retrieval and frame clustering metrics are highly sensitive to changes in the number of
+predicted segments, upon which multiple human annotators often disagree for the same track. 
+The NCE metrics are designed to be fairly robust to changes in segmentation granularity.
+Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE and frame clustering metrics. 
 
 
 \subsection{Results}

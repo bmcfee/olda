@@ -227,11 +227,13 @@ def compress_data(X, k):
 
 def make_rep_feature_plot(M):
     
-    myimshow = functools.partial(imshow, aspect='auto', interpolation='nearest', origin='lower', cmap='gray_r')
+    myimshow = functools.partial(imshow, aspect='auto', interpolation='none', origin='lower', cmap='gray_r')
     
     R = librosa.segment.recurrence_matrix(M, k=np.sqrt(1./M.shape[1]), sym=False).astype(np.float)
     
     Rskew = librosa.segment.structure_feature(R, pad=True)
+    #Rskew = np.roll(Rskew, M.shape[1], axis=0)
+    Rskew = Rskew[:R.shape[0]-1] + Rskew[-1:R.shape[0]+1:-1]
     
     Rfilt = scipy.signal.medfilt2d(Rskew, kernel_size=(1, 7))
     #Rfilt = Rfilt[Rfilt.sum(axis=1) > 0, :]
@@ -242,17 +244,24 @@ def make_rep_feature_plot(M):
     subplot(141)
     myimshow(R), title('Self-similarity')
     xlabel('Beat'), ylabel('Beat')
+    xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
+    yticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
     subplot(142)
     myimshow(Rskew), title('Skewed similarity')
     xlabel('Beat'), ylabel('Lag')
+    yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1], M.shape[1] + 1, Rskew.shape[0] / 6))
+    xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
     subplot(143)
     myimshow(Rfilt), title('Median-filtering')
     xlabel('Beat'), ylabel('Lag')
+    yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1], M.shape[1] + 1, Rskew.shape[0] / 6))
+    xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
     subplot(144)
     myimshow(Rlatent, origin='upper', cmap='PuOr_r'), title('Latent repetition')
+    xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     xlabel('Beat'), ylabel('Factor')
     tight_layout()
     
@@ -264,7 +273,7 @@ M = get_beat_mfccs('/home/bmcfee/data/CAL500/mp3/2pac-trapped.mp3')
 
 # <codecell>
 
-make_rep_feature_plot(M[:,:200])
+make_rep_feature_plot(M[:,:150])
 
 # <codecell>
 
