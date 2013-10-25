@@ -116,7 +116,7 @@ matrix $L$:
 L \defeq \sigma_1^{-1} U\trans R = \sigma_1^{-1} \Sigma V\trans.
 \]
 Truncating $L$ to $d < 2t$ rows preserves the most important factors, and normalizing by $\sigma_1$ ensures that
-features maintain the same relative magnitude independent of track duration.  As depicted in \cref{fig:rep}, small values of $d$
+features maintain the same relative magnitude independent of track duration.  As depicted in \Cref{fig:rep}, small values of $d$
 suffice to capture high-level structure: in the given example, the key structural components are indicated by the value of the first
 factor.
 
@@ -213,8 +213,8 @@ Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE 
 
 \subsection{Results}
 \label{sec:results}
-\Cref{tab:results:beatles,tab:results:salami} list the results for the Beatles-ISO and SALAMI-free, respectively.
-In \cref{tab:results:beatles}, the SMGA method performs best on the majority of metrics,\footnote{We
+\Cref{tab:results} list the results for the Beatles-ISO and SALAMI-free.
+In \Cref{tab:results} (top), the SMGA method performs best on the majority of metrics,\footnote{We
 note that the SMGA parameters were optimized to perform well on this set (listed as
 Beatles-B)~\cite{serra2012unsupervised}, whereas the OLDA and unweighted methods had fixed parameter settings.}
 however, the scores on the NCE metrics ($S_O, S_U, S_F$) are roughly comparable between SMGA and OLDA ($S_F$ of 0.829
@@ -224,7 +224,7 @@ different levels of granularity.
 However, both the unweighted and OLDA models achieve much higher accuracy for boundary detection at 0.5s resolution,
 indicating that the proposed features are better at preserving clean segment boundaries.  
 
-On SALAMI-free (\cref{tab:results:salami}), the trends are qualitatively similar as in Beatles-ISO, but the OLDA
+On SALAMI-free (\cref{tab:results}, bottom), the trends are qualitatively similar as in Beatles-ISO, but the OLDA
 model achieves the highest scores on most metrics (and all F-scores). This is likely due to the proposed model's
 ability to incorporate disparate feature types (timbre, pitch, and time), whereas the SMGA and C-NMF models are
 limited to using only pitch. 
@@ -243,9 +243,11 @@ features.
 
 \begin{table*}
 \centering
-\caption{Segmentation scores on Beatles-ISO. OLDA was trained on SALAMI-free. Best scores are
-indicated in bold.\label{tab:results:beatles}}
+% \caption{Segmentation scores on Beatles-ISO. OLDA was trained on SALAMI-free. Best scores are indicated in bold.\label{tab:results:beatles}}
+\caption{Segmentation results.  Best scores are indicated in bold. For Beatles-ISO, OLDA was trained on SALAMI-free. For
+SALAMI-free, OLDA was trained on Beatles-ISO.  C-NMF and SI-LPCA scores are quoted from Nieto and Jehan~\cite{nieto2013convex}.\label{tab:results}}
 \begin{tabular}{lrrrrrrrrrrrr}
+\multicolumn{13}{c}{Beatles-ISO}\\
 \toprule%
 Algorithm   &   $P_{0.5s}$ & $R_{0.5s}$ & $F_{0.5s}$ & $P_{3s}$     & $R_{3s}$  & $F_{3s}$   & $S_O$ & $S_U$ & $S_F$ & $P_C$& $R_C$& $F_C$\\
 \hline
@@ -256,17 +258,19 @@ SMGA~\hfill\cite{serra2012unsupervised}
             &   0.358 & 0.393 & 0.370 & \textbf{0.769}   & \textbf{0.808} & \textbf{0.780} & 0.811 & \textbf{0.858} & \textbf{0.829} & 0.702 & \textbf{0.798} &
             \textbf{0.729}\\
 \bottomrule%
-\end{tabular}
-\end{table*}
+\\
+% \end{tabular}
+% \end{table*}
 
-\begin{table*}
-\centering
-\caption{Segmentation scores on SALAMI-free. OLDA was trained on Beatles-ISO. Best scores are
-indicated in bold.\label{tab:results:salami}}
-\begin{tabular}{lrrrrrrrrrrrr}
+% \begin{table*}
+% \centering
+% \caption{Segmentation scores on SALAMI-free. OLDA was trained on Beatles-ISO. Best scores are
+% indicated in bold.\label{tab:results:salami}}
+% \begin{tabular}{lrrrrrrrrrrrr}
+% Algorithm       &   $P_{0.5s}$ & $R_{0.5s}$ & $F_{0.5s}$ & $P_{3s}$     & $R_{3s}$   & $F_{3s}$   & $S_O$ & $S_U$ & $S_F$ & $P_C$& $R_C$& $F_C$\\
+% \hline
+\multicolumn{13}{c}{SALAMI-free}\\
 \toprule%
-Algorithm       &   $P_{0.5s}$ & $R_{0.5s}$ & $F_{0.5s}$ & $P_{3s}$     & $R_{3s}$   & $F_{3s}$   & $S_O$ & $S_U$ & $S_F$ & $P_C$& $R_C$& $F_C$\\
-\hline
 Unweighted  & 0.400 & 0.364 & 0.372 & \textbf{0.610} & 0.557 & 0.570 & \textbf{0.812} & 0.795 & 0.794 & \textbf{0.666} & 0.652 & 0.626\\
 OLDA    & \textbf{0.406} & \textbf{0.407} & \textbf{0.396} & \textbf{0.610} & 0.611 & \textbf{0.597} & 0.804 & 0.829 & \textbf{0.808} & 0.640 & 0.707 & \textbf{0.640}\\
 \hline
