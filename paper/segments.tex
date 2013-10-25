@@ -67,7 +67,7 @@ generalization across multiple examples when using self-similarity features.
 The core segmentation algorithm we use is most similar to the constrained clustering method developed by Levy and
 Sandler~\cite{levy2008structural}, which incorporated sequential consistency constraints to a hidden Markov model over
 segment transitions. The method proposed here is much simpler, and uses a sequentially constrained agglomerative
-clustering algorithm to produce a hierarchical segmentation over the entire track in linear time. Because the
+clustering algorithm to produce a hierarchical segmentation over the entire track.  Because the
 resulting segmentation is hierarchical, the number of segments need not be specified in advance.
 
 The proposed latent structural repetition features are adapted from the work of Serr\`{a}
@@ -132,12 +132,15 @@ the result of the horizontal median filter;
 the derived 8-dimensional latent factor representation (best viewed in color).\label{fig:rep}}
 \end{figure*}
 
-\subsection{Constrained clustering}
+\subsection{Constrained agglomerative clustering}
 Given a feature matrix $X \in \R^{D\times t}$, we produce a hierarchical clustering of the columns of $X$ by using the
 linkage-constrained variant of Ward's agglomerative clustering algorithm~\cite{ward1963hierarchical} as implemented in
 Scikit-learn~\cite{pedregosa2011scikit}.  Specifically, for each column $i$, linkage constraints are introduced for $(i-1, i)$ and
-$(i, i+1)$, so the linkage graph forms a chain.  The full hierarchy is computed after $\Oh(t)$ merge operations, so the 
-algorithm runs in $\Oh(dt)$ time. 
+$(i, i+1)$, so the linkage graph forms a chain.  Starting from $t$ clusters (each column of $X$), the algorithm then iteratively 
+merges the two closest (feasible) clusters until only one remains.
+Due to the chain graph constraint, the full hierarchy is computed after at most $\Oh(t)$ merge operations. Each merge operation
+takes time $\Oh(D + \log t)$ (to compute distance and manage a priority queue), so the algorithm runs in $\Oh(tD + t\log t)$ time.
+For the typical case of $D > \log t$, the cost of clustering is dominated by the cost of computing the feature matrix $X$.
 
 \subsection{Choosing the number of segments}
 The hierarchical clustering produces segmentations for all numbers of segments $1 \leq k \leq t$.  While a multi-scale view can 
@@ -148,6 +151,20 @@ of 10s and 45s.  An AIC correction~\cite{akaike1973information} is then applied 
 model for each segment) and the global minimizer is selected.
 
 \subsection{Multiple features}
+Structural repetition features are most commonly used to detect repeated chord sequences, but the idea is general enough to
+support any kind of feature descriptor.  We aggregate several types of feature descriptors for each beat:
+\begin{description}\addtolength{\itemsep}{-0.5\baselineskip}%
+\item[MFCC]   Beat-synchronous (mean) Mel-frequency cepstral coefficients and their latent repetitions;
+\item[Chroma] Beat-synchronous (median) chroma vectors and their latent repetitions; and
+\item[Time]   Beat time-stamps, (duration) normalized beat time-stamps, beat indices, and normalized beat indices.
+\end{description}
+The MFCC features roughly capture local timbre and timbre sequences. The chroma features capture local pitch similarity and pitch
+sequences. Finally, the time features act as an implicit quadratic regularization on segment durations, and encourages
+balanced segmentations.
+
+All features can be stacked together into a single feature matrix $X \in \R^{D\times t}$, and clustered via the method described
+above. However, the relative magnitudes and importances of each features are not necessarily calibrated to produce optimal
+clusterings. 
 
 \section{Ordinal linear discriminant analysis}
 \label{sec:olda}
@@ -157,7 +174,7 @@ model for each segment) and the global minimizer is selected.
 \section{Evaluation}
 \label{sec:eval}
 All proposed methods are implemented in Python with the \texttt{librosa} package.\footnote{The implementation is
-publicly available at \url{https://github.com/bmcfee/olda}.}
+available at \url{https://github.com/bmcfee/olda}.}
 
 \subsection{Data and metrics}
 To evaluate the proposed methods, we evaluate predicted segmentations on two publicly available datasets:

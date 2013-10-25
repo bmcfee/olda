@@ -260,7 +260,7 @@ def make_rep_feature_plot(M):
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
     subplot(144)
-    myimshow(Rlatent, origin='upper', cmap='PiYG_r'), title('Latent repetition')
+    myimshow(Rlatent, origin='upper', cmap='PRGn_r'), title('Latent repetition')
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     xlabel('Beat'), ylabel('Factor')
     tight_layout()
@@ -284,7 +284,7 @@ model_salami  = np.load('/home/bmcfee/git/olda/data/model_olda_salami.npy')
 
 figure(figsize=(12,4))
 subplot(121)
-imshow(model_beatles, aspect='auto', interpolation='none', cmap='PuOr_r')
+imshow(model_beatles, aspect='auto', interpolation='none', cmap='PRGn_r')
 title('$W^\mathsf{T}$ - Beatles-ISO')
 yticks([])
 ylabel('Importance')
@@ -292,7 +292,7 @@ xticks([0, 32, 44, 76, 108], ['MFCC', 'Chroma', 'Rep-M', 'Rep-C', 'Time'], rotat
 colorbar()
 
 subplot(122)
-imshow(model_salami, aspect='auto', interpolation='none', cmap='PuOr_r')
+imshow(model_salami, aspect='auto', interpolation='none', cmap='PRGn_r')
 title('$W^\mathsf{T}$ - SALAMI-Free')
 colorbar()
 yticks([])
