@@ -271,7 +271,7 @@ Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE 
 \begin{table*}
 \centering
 \caption{Segmentation results. Best scores are indicated in bold; significance is assessed with a Bonferroni-corrected Wilcoxon
-signed-rank test with $p=0.05$. C-NMF and SI-LPCA scores are quoted from~\cite{nieto2013convex}.\label{tab:results}}
+signed-rank test at $\alpha=0.05$. C-NMF and SI-LPCA scores are quoted from~\cite{nieto2013convex}.\label{tab:results}}
 \footnotesize
 \begin{tabular}{lrrrrrrrrrrrr}
 % \bottomrule%
@@ -328,18 +328,17 @@ however, the scores on the NCE metrics ($S_O, S_U, S_F$) are roughly comparable 
 and 0.813, respectively). 
 This suggests that SMGA and the proposed methods are producing segmentations of comparable quality, but 
 different levels of granularity.
-However, both the unweighted and OLDA models achieve much higher accuracy for boundary detection at 0.5s resolution,
+However, the unweighted, FDA, and OLDA models achieve much higher accuracy for boundary detection at 0.5s resolution,
 indicating that the proposed features are better at preserving clean segment boundaries.  
 
 On SALAMI-free (\cref{tab:results}, bottom), the trends are qualitatively similar as in Beatles-ISO, but the OLDA
-model achieves the largest improvement on the combined F-scores. This is likely due to the proposed model's
-ability to incorporate disparate feature types (timbre, pitch, and time), whereas the SMGA and C-NMF models are
-limited to using only pitch. 
+model consistently achieves the highest F-score. 
+This is likely due to the proposed model's ability to incorporate disparate feature types (timbre, pitch, and time), whereas the SMGA and C-NMF models are limited to using only pitch. 
 Because SALAMI-free includes a wider variety of styles and instrumentations than the Beatles-ISO set, 
 timbre can be an important cue for detecting salient change-points.
 
 In both datasets, OLDA training generally provides substantial improvements in accuracy over the unweighted model. 
-The FDA models tend to improve precision, but often reduce recall.
+The FDA models significantly improve precision measures, but sacrifice recall.
 % \Cref{fig:fda-vs-olda} illustrates the transformation matrices $W$ learned by FDA and OLDA on the Beatles-ISO data.  
 
 % The fact that the model parameters were transferred across datasets suggests some degree of universality of the
