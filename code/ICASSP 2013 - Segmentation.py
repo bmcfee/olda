@@ -291,26 +291,26 @@ def make_rep_feature_plot(M):
     
     Rlatent = compress_data(Rfilt, 8)
     
-    figure(figsize=(12,3))
-    subplot(141)
+    figure(figsize=(6,6))
+    subplot(221)
     myimshow(R), title('Self-similarity')
     xlabel('Beat'), ylabel('Beat')
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     yticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
-    subplot(142)
+    subplot(222)
     myimshow(Rskew), title('Skewed similarity')
     xlabel('Beat'), ylabel('Lag')
     yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1], M.shape[1] + 1, Rskew.shape[0] / 6))
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
-    subplot(143)
+    subplot(223)
     myimshow(Rfilt), title('Median-filtering')
     xlabel('Beat'), ylabel('Lag')
     yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1], M.shape[1] + 1, Rskew.shape[0] / 6))
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
-    subplot(144)
+    subplot(224)
     myimshow(Rlatent, origin='upper', cmap='PRGn_r'), title('Latent repetition')
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     xlabel('Beat'), ylabel('Factor')
