@@ -180,12 +180,12 @@ support any kind of feature descriptor.  We aggregate several types of feature d
 \begin{description}\addtolength{\itemsep}{-0.5\baselineskip}%
 \item[MFCC]   Beat-synchronous (mean) Mel-frequency cepstral coefficients and their latent repetitions;
 \item[Chroma] Beat-synchronous (median) chroma vectors and their latent repetitions; and
-\item[Time]   Beat time-stamps (seconds), (duration) normalized beat time-stamps, beat indices ($1, 2, \ldots, t$), 
+\item[Time]   Beat time-stamps (seconds), normalized time-stamps, beat indices ($1, 2, \ldots, t$), 
 and normalized beat indices ($1/t, 2/t, \ldots, 1.0$).
 \end{description}
-The MFCC features roughly capture local timbre and timbre sequences. The chroma features capture local pitch similarity and pitch
-sequences. Finally, the time features act as an implicit quadratic regularization on segment durations, and encourages
-balanced segmentations.
+The MFCC features capture local timbre, and repeated timbre sequences. 
+Similarly, chroma features capture local pitch similarity and sequential repetitions.
+The time features act as an implicit quadratic regularization on segment durations, and promote balanced segmentations.
 
 All features can be stacked together into a single feature matrix $X \in \R^{D\times t}$, and clustered via the method described
 above. However, the relative magnitude and importance of each feature is not calibrated to produce optimal clusterings. 
@@ -259,17 +259,15 @@ Both datasets provide labels for each annotated segment (\eg, \emph{verse} or \e
 labels in this set of experiments. Compared to the Beatles corpus, SALAMI has much more diversity of style, genre, 
 instrumentation, and artists, and is therefore a more challenging dataset.
 
-On both datasets, we compare to the method of Serr\`{a} \etal~\cite{serra2012unsupervised}, which achieved the
+On both datasets, we compare to SMGA~\cite{serra2012unsupervised}, which achieved the
 highest performance in the 2012 MIREX structural segmentation evaluation~\cite{Downie2008}.
-On SALAMI-Free, we include previously published results for the C-NMF~\cite{nieto2013convex} and SI-LPCA~\cite{weiss2011unsupervised}.
+On SALAMI-Free, we include comparisons to C-NMF~\cite{nieto2013convex} and SI-LPCA~\cite{weiss2011unsupervised}.
 
 For both datasets, we evaluate the unweighted feature representation (\emph{Unweighted}), FDA optimization (using the
-one-class-per-segment approach described in \Cref{sec:olda}), and the OLDA-optimized
-representation. To ensure fairness of evaluation, the FDA and OLDA models used on the Beatles-ISO were trained using only
-SALAMI-free data, and vice versa.  FDA and OLDA models were trained by running the entire segmentation algorithm for
-$\lambda \in \{10^0, 10^1, \dots, 10^7\}$, and choosing the value which achieved the highest mean $S_F$ score (see below) on 
-the training set.
-
+one-class-per-segment approach described in \Cref{sec:olda}), and OLDA. 
+To ensure fairness of evaluation, the FDA and OLDA models used on the Beatles-ISO were trained using only
+SALAMI-free data, and vice versa.  FDA and OLDA were trained with $\lambda \in \{10^0, 10^1, \dots, 10^7\}$, 
+and choosing the $\lambda$ which maximized $S_F$ score (see below) on the training set.
 
 We report the following standard segmentation metrics:
 \footnote{For a detailed description of segmentation metrics, see~\cite{mirexstructure}.}

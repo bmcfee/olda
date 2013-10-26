@@ -208,6 +208,10 @@ pprint(perfs_salami)
 
 # <codecell>
 
+save_results('/home/bmcfee/git/olda/data/salami_score.csv', perfs_salami)
+
+# <codecell>
+
 ind_perfs_salami = evaluate_set('SALAMI', agg=False)
 
 # <codecell>
@@ -219,10 +223,6 @@ for idx in range(len(METRICS)):
 # <codecell>
 
 plot_boxes(ind_perfs_salami)
-
-# <codecell>
-
-save_results('/home/bmcfee/git/olda/data/salami_score.csv', perfs_salami)
 
 # <headingcell level=1>
 
