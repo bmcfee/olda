@@ -48,9 +48,12 @@ def evaluate_set(SETNAME, agg=True):
         
         for t, p in zip(truth, predictions):
             S = []
-            S.extend(mir_eval.segment.boundary_detection(t, p, window=0.5))
-            S.extend(mir_eval.segment.boundary_detection(t, p, window=3.0))
-            S.extend(mir_eval.segment.boundary_deviation(t, p))
+            S.extend(mir_eval.segment.boundary_detection(t[1:-1], p[1:-1], window=0.5))
+            S.extend(mir_eval.segment.boundary_detection(t[1:-1], p[1:-1], window=3.0))
+            S.extend(mir_eval.segment.boundary_deviation(t[1:-1], p[1:-1]))
+            #S.extend(mir_eval.segment.boundary_detection(t, p, window=0.5))
+            #S.extend(mir_eval.segment.boundary_detection(t, p, window=3.0))
+            #S.extend(mir_eval.segment.boundary_deviation(t, p))
             S.extend(mir_eval.segment.frame_clustering_nce(t, p))
             S.extend(mir_eval.segment.frame_clustering_pairwise(t, p))
             S.extend(mir_eval.segment.frame_clustering_mutual_information(t, p))
@@ -182,7 +185,7 @@ pprint(perfs_beatles)
 
 # <codecell>
 
-save_results('/home/bmcfee/git/olda/data/beatles_scores.csv', perfs_beatles)
+save_results('/home/bmcfee/git/olda/data/beatles_scores_adjusted.csv', perfs_beatles)
 
 # <codecell>
 
@@ -208,7 +211,7 @@ pprint(perfs_salami)
 
 # <codecell>
 
-save_results('/home/bmcfee/git/olda/data/salami_score.csv', perfs_salami)
+save_results('/home/bmcfee/git/olda/data/salami_scores_adjusted.csv', perfs_salami)
 
 # <codecell>
 
