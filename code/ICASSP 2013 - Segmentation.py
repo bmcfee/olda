@@ -30,9 +30,7 @@ def evaluate_set(SETNAME, agg=True):
     
     truth = load_annotations('%s/truth/%s/*' % (ROOTPATH, SETNAME))
     
-    #algos = map(os.path.basename, sorted(glob.glob('%s/predictions/%s/*' % (ROOTPATH, SETNAME))))
-    #algos = map(os.path.basename, sorted(glob.glob('%s/predictions/%s/gnostic_*' % (ROOTPATH, SETNAME))))
-    algos = map(os.path.basename, sorted(glob.glob('%s/predictions/%s/dyn_*' % (ROOTPATH, SETNAME))))
+    algos = map(os.path.basename, sorted(glob.glob('%s/predictions/%s/*' % (ROOTPATH, SETNAME))))
     
     scores = {}
     for A in algos:
@@ -139,6 +137,14 @@ perfs_beatles = evaluate_set('BEATLES')
 
 # <codecell>
 
+pprint(perfs_beatles)
+
+# <codecell>
+
+save_results('/home/bmcfee/git/olda/data/beatles_scores.csv', perfs_beatles)
+
+# <codecell>
+
 ind_perfs_beatles = evaluate_set('BEATLES', agg=False)
 
 # <codecell>
@@ -147,15 +153,11 @@ plot_boxes(ind_perfs_beatles)
 
 # <codecell>
 
-save_results('/home/bmcfee/git/olda/data/beatles_scores_dyn.csv', perfs_beatles)
-
-# <codecell>
-
-pprint(perfs_beatles)
-
-# <codecell>
-
 perfs_salami = evaluate_set('SALAMI', agg=True)
+
+# <codecell>
+
+pprint(perfs_salami)
 
 # <codecell>
 
@@ -167,11 +169,7 @@ plot_boxes(ind_perfs_salami)
 
 # <codecell>
 
-pprint(perfs_salami)
-
-# <codecell>
-
-save_results('/home/bmcfee/git/olda/data/salami_scores_dyn.csv', perfs_salami)
+save_results('/home/bmcfee/git/olda/data/salami_score.csv', perfs_salami)
 
 # <headingcell level=1>
 
@@ -279,9 +277,6 @@ make_rep_feature_plot(M[:,:150])
 
 model_beatles = np.load('/home/bmcfee/git/olda/data/model_olda_beatles.npy')
 model_salami  = np.load('/home/bmcfee/git/olda/data/model_olda_salami.npy')
-
-# <codecell>
-
 figure(figsize=(4,3.5))
 subplot(211)
 imshow(model_beatles, aspect='auto', interpolation='none', cmap='PRGn_r')
@@ -302,4 +297,29 @@ xticks([0, 32, 44, 76, 108], ['MFCC', '$\uparrow$\nChroma', 'R-MFCC', 'R-Chroma'
 
 tight_layout()
 savefig('/home/bmcfee/git/olda/paper/figs/w.pdf', format='pdf', pad_inches=0, transparent=True)
+
+# <codecell>
+
+model_fda_beatles = np.load('/home/bmcfee/git/olda/data/model_fda_beatles.npy')
+model_olda_beatles  = np.load('/home/bmcfee/git/olda/data/model_olda_beatles.npy')
+figure(figsize=(4,4))
+subplot(211)
+imshow(model_fda_beatles, aspect='auto', interpolation='none', cmap='PRGn_r')
+ylabel('FDA Beatles')
+yticks([])
+#ylabel("More important $\\rightarrow$")
+#xticks([0, 32, 44, 76, 108], ['MFCC', 'Chroma', 'Rep-M', 'Rep-C', 'Time'], rotation=-30, horizontalalignment='left')
+xticks([])
+#colorbar()
+
+subplot(212)
+imshow(model_salami, aspect='auto', interpolation='none', cmap='PRGn_r')
+ylabel('OLDA Beatles')
+#colorbar(orientation='horizontal')
+#ylabel("More important $\\rightarrow$")
+yticks([])
+xticks([0, 32, 44, 76, 108], ['MFCC', '$\uparrow$\nChroma', 'R-MFCC', 'R-Chroma', 'Time'], horizontalalignment='left')
+
+tight_layout()
+savefig('/home/bmcfee/git/olda/paper/figs/fda-vs-olda.pdf', format='pdf', pad_inches=0, transparent=True)
 

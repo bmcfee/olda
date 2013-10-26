@@ -174,7 +174,7 @@ above. However, the relative magnitude and importance of each feature is not cal
 \section{Ordinal linear discriminant analysis}
 \label{sec:olda}
 To improve the feature representation for clustering, we propose a simple adaptation of Fisher's linear discriminant
-analysis (LDA)~\cite{fisher1936use}.  In its multi-class form, LDA takes as input a labeled collection of data $x_i \in \R^D$
+analysis (FDA)~\cite{fisher1936use}.  In its multi-class form, FDA takes as input a labeled collection of data $x_i \in \R^D$
 and class labels $y_i \in \{1,2,\ldots, C\}$, and produces a linear transformation $W \in \R^{D\times D}$ that simultaneously 
 maximizes the distance between class centroids, and minimizes the variance of each class 
 individually~\cite{fukunaga1990introduction}. This is accomplished by solving the following optimization:
@@ -187,7 +187,8 @@ A_\text{W} & \defeq \sum_c \sum_{i : y_i = c} (x_i - \mu_c)(x_i - \mu_c)\trans\\
 A_\text{B} & \defeq \sum_c n_c (\mu_c - \mu)(\mu_c - \mu)\trans,
 \end{align*}
 $\mu$ denotes the mean across all classes, $\mu_c$ is the mean of class $c$, and $n_c$ denotes the number of examples in class $c$.
-\Cref{eq:fda} can be efficiently solved as a generalized eigenvalue problem over the two scatter matrices.
+\Cref{eq:fda} can be efficiently solved as a generalized eigenvalue problem over the two scatter matrices $(A_\text{B},
+A_\text{W})$~\cite{de2005eigenproblems}.
 
 Class labels can be synthesized from segments on an annotated training song, so that the columns of $X$ belonging to the first 
 segment are assigned to class 1, the second segment to class 2, and so on.
@@ -195,7 +196,7 @@ However, interpreting each segment as a distinct class could result in a repeate
 cannot be separated.  
 
 Now, note that due to linkage constraints, the agglomerative clustering algorithm (\cref{sec:clustering}) only considers merge 
-operations over adjacent segments $(c, c+1)$. This motivates a relaxed LDA problem which only attempts to separate adjacent
+operations over adjacent segments $(c, c+1)$. This motivates a relaxed FDA problem which only attempts to separate adjacent
 segments.  This is accomplished by replacing the between-class scatter matrix $A_B$ with the resulting \emph{ordinal scatter matrix}:
 \begin{align*}
 A_\text{O} &\defeq \sum_{c < C} n_c (\mu_c - \mu_{c+}) (\mu_c - \mu_{c+})\trans\\
@@ -206,9 +207,10 @@ Because scatter matrices are accumulated linearly, it is also straightforward to
 by summing their individual contributions.  Finally, because $A_\text{O}$ may be rank-degenerate, we include a smoothing parameter
 $\lambda > 0$.  The OLDA optimization takes the form:
 \begin{equation}
-W \defeq \argmin_W \trace\left( {(W\trans (A_\text{W} + \lambda I) W)}^{-1} W\trans A_\text{O} W \right) \label{eq:olda},
+W \defeq \argmax_W \trace\left( {(W\trans (A_\text{W} + \lambda I) W)}^{-1} W\trans A_\text{O} W \right) \label{eq:olda},
 \end{equation}
-which again can be solved efficiently as a generalized eigenvalue problem.
+which again can be solved efficiently as a generalized eigenvalue problem over the matrix pair 
+$(A_\text{O}, A_\text{W} + \lambda I)$.
 
 After learning $W$, the feature matrix $X$ for a previously unseen song is transformed via $X \mapsto W\trans X$, and then 
 given as input to the clustering algorithm described in \Cref{sec:clustering}.
@@ -216,10 +218,7 @@ given as input to the clustering algorithm described in \Cref{sec:clustering}.
 \section{Evaluation}
 \label{sec:eval}
 All proposed methods are implemented in Python with the \texttt{librosa} package.\footnote{Source code is
-available at \url{https://github.com/bmcfee/olda}.}  OLDA models were trained by running the entire segmentation algorithm for
-$\lambda \in \{10^0, 10^1, \dots, 10^7\}$, and choosing the value which achieved the highest mean $S_F$ score (see below) on 
-the training set.
-
+available at \url{https://github.com/bmcfee/olda}.}  
 All signals were downsampled to 22KHz mono, and analyzed with a 93ms window and 3ms hop.  MFCCs are generated from 128 Mel bands
 with an 8KHz cutoff. We take 32 MFCCs and 12 chroma bins; repetition features are calculated with $2\sqrt{t}$ nearest neighbors,
 median-filtered with a window width of 7, and projected to 32 dimensions each.  Including the four time-stamp features, the combined
@@ -240,9 +239,14 @@ On both datasets, we compare to the method of Serr\`{a} \etal~\cite{serra2012uns
 highest performance in the 2012 MIREX structural segmentation evaluation~\cite{Downie2008}.
 On SALAMI-Free, we include previously published results for the C-NMF~\cite{nieto2013convex} and SI-LPCA~\cite{weiss2011unsupervised}.
 
-For both datasets, we evaluate both the unweighted feature representation (\emph{Unweighted}) and the OLDA-optimized
-representation. To ensure fairness of evaluation, the OLDA model used on the Beatles-ISO was trained using only
-SALAMI-free data, and vice versa.
+For both datasets, we evaluate the unweighted feature representation (\emph{Unweighted}), FDA optimization (using the
+one-class-per-segment approach described in \Cref{sec:olda}), and the OLDA-optimized
+representation. To ensure fairness of evaluation, the FDA and OLDA models used on the Beatles-ISO were trained using only
+SALAMI-free data, and vice versa.  FDA\footnote{We apply the same regularization strategy to FDA as in OLDA, $A_\text{W} + \lambda
+I$.} and OLDA models were trained by running the entire segmentation algorithm for
+$\lambda \in \{10^0, 10^1, \dots, 10^7\}$, and choosing the value which achieved the highest mean $S_F$ score (see below) on 
+the training set.
+
 
 We report the following standard segmentation metrics:
 \footnote{For a detailed description of segmentation metrics, see~\cite{mirexstructure}.}
@@ -263,9 +267,7 @@ Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE 
 \label{sec:results}
 \begin{table*}
 \centering
-% \caption{Segmentation scores on Beatles-ISO. OLDA was trained on SALAMI-free. Best scores are indicated in bold.\label{tab:results:beatles}}
-\caption{Segmentation results: best scores are indicated in bold. For Beatles-ISO, OLDA was trained on SALAMI-free. For
-SALAMI-free, OLDA was trained on Beatles-ISO.  C-NMF and SI-LPCA scores are quoted from Nieto and Jehan~\cite{nieto2013convex}.\label{tab:results}}
+\caption{Segmentation results: best scores are indicated in bold. C-NMF and SI-LPCA scores are quoted from~\cite{nieto2013convex}.\label{tab:results}}
 \footnotesize
 \begin{tabular}{lrrrrrrrrrrrr}
 % \bottomrule%
@@ -273,34 +275,23 @@ SALAMI-free, OLDA was trained on Beatles-ISO.  C-NMF and SI-LPCA scores are quot
 \toprule%
 Algorithm   &   $P_{0.5s}$ & $R_{0.5s}$ & $F_{0.5s}$ & $P_{3s}$     & $R_{3s}$  & $F_{3s}$   & $S_O$ & $S_U$ & $S_F$ & $P_C$& $R_C$& $F_C$\\
 \hline
-Unweighted  &   \textbf{0.446} & 0.390 & 0.408 & 0.704   & 0.603 & 0.640 & \textbf{0.842} & 0.755 & 0.791 & \textbf{0.780} & 0.613 & 0.668\\
+Unweighted  &   0.446 & 0.390 & 0.408 & 0.704   & 0.603 & 0.640 & \textbf{0.842} & 0.755 & 0.791 & \textbf{0.780} & 0.613 & 0.668\\
+FDA         &   \textbf{0.455} & 0.416 & 0.427 & 0.688 & 0.620 & 0.642 & 0.839 & 0.778 & 0.802 & 0.774 & 0.653 & 0.691\\
 OLDA        &   0.438 & \textbf{0.447} & \textbf{0.434} & 0.685   & 0.680 & 0.670 & 0.828 & 0.808 & 0.813 & 0.744 & 0.686 & 0.694\\
 \hline
 SMGA~\hfill\cite{serra2012unsupervised}
             &   0.358 & 0.393 & 0.370 & \textbf{0.769}   & \textbf{0.808} & \textbf{0.780} & 0.811 & \textbf{0.858} & \textbf{0.829} & 0.702 & \textbf{0.798} &
             \textbf{0.729}\\
 \toprule%
-% \\
-% \end{tabular}
-% \end{table*}
-
-% \begin{table*}
-% \centering
-% \caption{Segmentation scores on SALAMI-free. OLDA was trained on Beatles-ISO. Best scores are
-% indicated in bold.\label{tab:results:salami}}
-% \begin{tabular}{lrrrrrrrrrrrr}
-% Algorithm       &   $P_{0.5s}$ & $R_{0.5s}$ & $F_{0.5s}$ & $P_{3s}$     & $R_{3s}$   & $F_{3s}$   & $S_O$ & $S_U$ & $S_F$ & $P_C$& $R_C$& $F_C$\\
-% \hline
-% \bottomrule%
 \multicolumn{13}{c}{SALAMI-free}\\
 \toprule%
-Unweighted  & 0.400 & 0.364 & 0.372 & \textbf{0.610} & 0.557 & 0.570 & \textbf{0.812} & 0.795 & 0.794 & \textbf{0.666} & 0.652 & 0.626\\
-OLDA    & \textbf{0.406} & \textbf{0.407} & \textbf{0.396} & \textbf{0.610} & 0.611 & \textbf{0.597} & 0.804 & 0.829 & \textbf{0.808} & 0.640 & 0.707 & \textbf{0.640}\\
+Unweighted  & 0.400 & 0.364 & 0.372 & 0.610 & 0.557 & 0.570 & 0.812 & 0.795 & 0.794 & 0.666 & 0.652 & 0.626\\
+FDA     &  \textbf{0.492} & 0.349 & \textbf{0.397} & \textbf{0.694} & 0.511 & 0.574 & \textbf{0.849} & 0.729 & 0.771 &
+\textbf{0.751} & 0.566 & 0.603\\
+OLDA    &  0.406 & \textbf{0.407} & 0.396 & 0.610 & 0.611 & \textbf{0.597} & 0.804 & 0.829 & \textbf{0.808} & 0.640 & 0.707 & \textbf{0.640}\\
 \hline
 SMGA~\hfill\cite{serra2012unsupervised}
         & 0.209 & 0.360 & 0.256 & 0.512 & \textbf{0.733} & 0.589 & 0.714 & \textbf{0.895} & 0.786 & 0.448 & \textbf{0.822} & 0.550\\
-% C-NMF~\cite{nieto2013convex}& -- & -- & -- & 0.430 & 0.523 & 0.451 & 0.506 & 0.443 & -- & 0.440 & 0.810 & 0.531\\
-% SI-PLCA~\cite{weiss2011unsupervised} & -- & -- & -- & 0.195 & 0.461 & 0.256 &  0.442 & 0.514 & -- & 0.558 & 0.521 & 0.513\\
 C-NMF~\hfill\cite{nieto2013convex}            
         & -- & -- & -- & 0.430 & 0.523 & 0.451 & -- & -- & -- & -- & -- & -- \\
 SI-PLCA~\hfill\cite{weiss2011unsupervised}    
@@ -315,6 +306,14 @@ SI-PLCA~\hfill\cite{weiss2011unsupervised}
 \vspace{-\baselineskip}%
 \caption{OLDA models $W\trans$ learned on Beatles-ISO and SALAMI-free. Each row corresponds to a direction, 
 and they are ordered by decreasing importance from top to bottom.\label{fig:w}}
+\end{figure}
+
+\begin{figure}
+\flushright%
+\includegraphics[width=\columnwidth]{figs/fda-vs-olda}%
+\vspace{-\baselineskip}%
+\caption{FDA and OLDA models $W\trans$ learned on Beatles-ISO. Each row corresponds to a direction, 
+and they are ordered by decreasing importance from top to bottom.\label{fig:fda-vs-olda}}
 \end{figure}
 
 \Cref{tab:results} list the results for the Beatles-ISO and SALAMI-free.
