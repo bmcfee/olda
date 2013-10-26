@@ -298,7 +298,7 @@ ylabel('SALAMI-free')
 #colorbar(orientation='horizontal')
 #ylabel("More important $\\rightarrow$")
 yticks([])
-xticks([0, 32, 44, 76, 108], ['MFCC', '|\nChroma', 'Rep-MFCC', 'Rep-Chr', 'Time'], horizontalalignment='left')
+xticks([0, 32, 44, 76, 108], ['MFCC', '$\uparrow$\nChroma', 'R-MFCC', 'R-Chroma', 'Time'], horizontalalignment='left')
 
 tight_layout()
 savefig('/home/bmcfee/git/olda/paper/figs/w.pdf', format='pdf', pad_inches=0, transparent=True)

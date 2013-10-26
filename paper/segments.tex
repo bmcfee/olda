@@ -74,7 +74,9 @@ resulting segmentation is hierarchical, the number of segments need not be speci
 
 The proposed latent structural repetition features are adapted from the work of Serr\`{a}
 \etal~\cite{serra2012unsupervised}. While qualitatively similar, we apply different filtering and
-beat synchronization techniques to better preserve segment boundaries.
+beat synchronization techniques to better preserve segment boundaries. 
+In addition to chord sequence repetitions, our method includes timbre repetitions, as well as 
+localized timbre and pitch features, and timing information.
 
 \section{Music segmentation}
 \label{sec:features}
@@ -84,8 +86,8 @@ may more naturally be structured by changing instrumentation (\ie, which player 
 The former case is well characterized by detecting repeated chord sequences, and the latter is better modeled
 by finding sequences of locally homogenous timbre.
 
-We follow the general strategy used by Serr\`{a} \etal, which first converts global structural (repetitions) into
-local feature vectors, and then segmented by detecting salient changes in the resulting time-series. 
+We follow the strategy used by Serr\`{a} \etal, which first converts global structural (repetitions) into
+local feature vectors, and then segments by detecting changes in the resulting time-series. 
 When combined with the learning algorithm described in \Cref{sec:olda}, this framework facilitates the 
 combination of global and local information to simultaneously capture both high-level structure and low-level 
 consistency.
@@ -138,9 +140,9 @@ the derived 8-dimensional latent factor representation (best viewed in color).\l
 \label{sec:clustering}
 Given a feature matrix $X \in \R^{D\times t}$, we produce a hierarchical clustering of the columns of $X$ by using the
 linkage-constrained variant of Ward's agglomerative clustering algorithm~\cite{ward1963hierarchical} as implemented in
-Scikit-learn~\cite{pedregosa2011scikit}.  Specifically, for each column $i$, linkage constraints are introduced for $(i-1, i)$ and
-$(i, i+1)$, so the linkage graph forms a chain.  Starting from $t$ clusters (each column of $X$), the algorithm then iteratively 
-merges the two closest (feasible) clusters until only one remains.
+\texttt{Scikit-learn}~\cite{pedregosa2011scikit}.  Specifically, for each column $i$, linkage constraints are generated
+for $(i-1, i)$ and $(i, i+1)$, so the linkage graph forms a chain.  Starting from $t$ clusters (each column of $X$), the 
+algorithm then iteratively merges the two closest (feasible) clusters until only one remains.
 Due to the chain graph constraint, the full hierarchy is computed after at most $\Oh(t)$ merge operations. Each merge operation
 takes time $\Oh(D + \log t)$ (to compute distance and manage a priority queue), so the algorithm runs in $\Oh(tD + t\log t)$ time.
 For the typical case of $D > \log t$, the cost of clustering is dominated by the cost of computing the feature matrix $X$.
@@ -150,8 +152,8 @@ The hierarchical clustering produces segmentations for all numbers of segments $
 be useful in some scenarios --- such as interactive data exploration --- standard evaluations rely on choosing a particular value 
 of $k$. To select $k$ automatically, we compute the cost (quantization error) of each pruning within a plausible bounded range 
 $k_{\min} \leq k \leq k_{\max}$.  The bounds are determined dynamically by assuming average minimum and maximum segment duration 
-of 10s and 45s.  An AIC correction~\cite{akaike1973information} is then applied to each pruning (assuming a spherical Gaussian
-model for each segment) and the global minimizer is selected.
+of 10s and 45s.  AIC correction~\cite{akaike1973information} is then applied to each pruning (assuming a spherical Gaussian
+model for each segment), and the best value of $k$ is chosen to minimize the AIC-corrected cost.
 
 \subsection{Multiple features}
 Structural repetition features are most commonly used to detect repeated chord sequences, but the idea is general enough to
@@ -159,7 +161,8 @@ support any kind of feature descriptor.  We aggregate several types of feature d
 \begin{description}\addtolength{\itemsep}{-0.5\baselineskip}%
 \item[MFCC]   Beat-synchronous (mean) Mel-frequency cepstral coefficients and their latent repetitions;
 \item[Chroma] Beat-synchronous (median) chroma vectors and their latent repetitions; and
-\item[Time]   Beat time-stamps, (duration) normalized beat time-stamps, beat indices, and normalized beat indices.
+\item[Time]   Beat time-stamps (seconds), (duration) normalized beat time-stamps, beat indices ($1, 2, \ldots, t$), 
+and normalized beat indices ($1/t, 2/t, \ldots, 1.0$).
 \end{description}
 The MFCC features roughly capture local timbre and timbre sequences. The chroma features capture local pitch similarity and pitch
 sequences. Finally, the time features act as an implicit quadratic regularization on segment durations, and encourages
@@ -198,7 +201,7 @@ A_\text{O} &\defeq \sum_{c < C} n_c (\mu_c - \mu_{c+}) (\mu_c - \mu_{c+})\trans\
 
 Because scatter matrices are accumulated linearly, it is also straightforward to generalize this across multiple training examples
 by summing their individual contributions.  Finally, because $A_\text{O}$ may be rank-degenerate, we include a smoothing parameter
-$\lambda > 0$.  The resulting OLDA optimization takes the form:
+$\lambda > 0$.  The OLDA optimization takes the form:
 \begin{equation}
 W \defeq \argmin_W \trace\left( {(W\trans (A_\text{O} + \lambda I) W)}^{-1} W\trans A_\text{W} W \right) \label{eq:olda},
 \end{equation}
@@ -255,33 +258,6 @@ Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE 
 
 \subsection{Results}
 \label{sec:results}
-\Cref{tab:results} list the results for the Beatles-ISO and SALAMI-free.
-In \Cref{tab:results} (top), the SMGA method performs best on the majority of metrics,\footnote{We
-note that the SMGA parameters were optimized to perform well on this set (listed as
-Beatles-B)~\cite{serra2012unsupervised}, whereas the OLDA and unweighted methods had fixed parameter settings.}
-however, the scores on the NCE metrics ($S_O, S_U, S_F$) are roughly comparable between SMGA and OLDA ($S_F$ of 0.829
-and 0.813, respectively). 
-This suggests that SMGA and the proposed methods are producing segmentations of comparable quality, but 
-different levels of granularity.
-However, both the unweighted and OLDA models achieve much higher accuracy for boundary detection at 0.5s resolution,
-indicating that the proposed features are better at preserving clean segment boundaries.  
-
-On SALAMI-free (\cref{tab:results}, bottom), the trends are qualitatively similar as in Beatles-ISO, but the OLDA
-model achieves the highest scores on most metrics (and all F-scores). This is likely due to the proposed model's
-ability to incorporate disparate feature types (timbre, pitch, and time), whereas the SMGA and C-NMF models are
-limited to using only pitch. 
-Because SALAMI-free includes a wider variety of styles and instrumentations than the Beatles-ISO set, 
-timbre can be an important cue for detecting salient change-points.
-
-In both datasets, OLDA training generally provides substantial improvements in accuracy over the unweighted model, 
-especially for the combined F-scores.
-The fact that the model parameters were transferred across datasets suggests some degree of universality of the
-learned transformation.  \Cref{fig:w} illustrates the transformation matrices $W$ learned on each dataset. Both
-transformations exhibit qualitatively similar block structure, and place most of the mass on the MFCC components
-(upper-left blocks) while suppressing chroma and placing intermediate weight on the repetition features.
-
-
-
 \begin{table*}
 \centering
 % \caption{Segmentation scores on Beatles-ISO. OLDA was trained on SALAMI-free. Best scores are indicated in bold.\label{tab:results:beatles}}
@@ -328,13 +304,40 @@ SI-PLCA~\hfill\cite{weiss2011unsupervised}
 \end{tabular}
 \end{table*}
 
-\begin{figure}[h]
+\begin{figure}
 \flushright%
 \includegraphics[width=\columnwidth]{figs/w}%
 \vspace{-\baselineskip}%
 \caption{OLDA models $W\trans$ learned on Beatles-ISO and SALAMI-free. Each row corresponds to a direction, 
 and they are ordered by decreasing importance from top to bottom.\label{fig:w}}
 \end{figure}
+
+\Cref{tab:results} list the results for the Beatles-ISO and SALAMI-free.
+In \Cref{tab:results} (top), the SMGA method performs best on the majority of metrics,\footnote{We
+note that the SMGA parameters were optimized to perform well on this set (listed as
+Beatles-B)~\cite{serra2012unsupervised}.}
+however, the scores on the NCE metrics ($S_O, S_U, S_F$) are roughly comparable between SMGA and OLDA ($S_F$ of 0.829
+and 0.813, respectively). 
+This suggests that SMGA and the proposed methods are producing segmentations of comparable quality, but 
+different levels of granularity.
+However, both the unweighted and OLDA models achieve much higher accuracy for boundary detection at 0.5s resolution,
+indicating that the proposed features are better at preserving clean segment boundaries.  
+
+On SALAMI-free (\cref{tab:results}, bottom), the trends are qualitatively similar as in Beatles-ISO, but the OLDA
+model achieves the highest scores on most metrics (and all F-scores). This is likely due to the proposed model's
+ability to incorporate disparate feature types (timbre, pitch, and time), whereas the SMGA and C-NMF models are
+limited to using only pitch. 
+Because SALAMI-free includes a wider variety of styles and instrumentations than the Beatles-ISO set, 
+timbre can be an important cue for detecting salient change-points.
+
+In both datasets, OLDA training generally provides substantial improvements in accuracy over the unweighted model, 
+especially for the combined F-scores.
+The fact that the model parameters were transferred across datasets suggests some degree of universality of the
+learned transformation.  \Cref{fig:w} illustrates the transformation matrices $W$ learned on each dataset. Both
+transformations exhibit qualitatively similar block structure, and place most of the mass on the MFCC components
+(upper-left blocks) while suppressing chroma and placing intermediate weight on the repetition features.
+
+
 
 \section{Conclusion}
 \label{sec:conclusion}
