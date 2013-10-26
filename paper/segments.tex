@@ -104,7 +104,7 @@ Using nearest-neighbor linkage to compute the self-similarity matrix results in 
 Serr\`{a}~\etal{} resolve this by convolving with a Gaussian filter, which effectively suppresses noise, but also blurs
 segment boundaries. Instead, we propose to use a horizontal median filter, which (for odd window length) produces a binary matrix,
 suppresses links which do not belong to long sequences of repetitions, and fills in skipped conections (\cref{fig:rep}, third
-subplot). Moreover, the median filter cleanly preserves edges, resulting in more precise segment boundary detection.
+subplot). Because median filtering preserves edges, we may expect more precise boundary detection.
 
 Let $R \in \R^{2t \times t}$ denote the median-filtered, skewed self-similarity matrix over $t$ beats.  
 Note that different songs have different durations, so the dimensionality of $R$ changes from one song to this. 
@@ -140,7 +140,7 @@ the derived 8-dimensional latent factor representation (best viewed in color).\l
 \label{sec:clustering}
 Given a feature matrix $X \in \R^{D\times t}$, we produce a hierarchical clustering of the columns of $X$ by using the
 linkage-constrained variant of Ward's agglomerative clustering algorithm~\cite{ward1963hierarchical} as implemented in
-\texttt{Scikit-learn}~\cite{pedregosa2011scikit}.  Specifically, for each column $i$, linkage constraints are generated
+\texttt{scikit-learn}~\cite{pedregosa2011scikit}.  Specifically, for each column $i$, linkage constraints are generated
 for $(i-1, i)$ and $(i, i+1)$, so the linkage graph forms a chain.  Starting from $t$ clusters (each column of $X$), the 
 algorithm then iteratively merges the two closest (feasible) clusters until only one remains.
 Due to the chain graph constraint, the full hierarchy is computed after at most $\Oh(t)$ merge operations. Each merge operation
@@ -189,11 +189,14 @@ A_\text{B} & \defeq \sum_c n_c (\mu_c - \mu)(\mu_c - \mu)\trans,
 $\mu$ denotes the mean across all classes, $\mu_c$ is the mean of class $c$, and $n_c$ denotes the number of examples in class $c$.
 \Cref{eq:fda} can be efficiently solved as a generalized eigenvalue problem over the two scatter matrices.
 
-In the context of segmentation, it would be naturally to synthesize class labels from segment identifiers on an annotated training
-set, so that the columns of $X$ belonging to the first segment are assigned to class 1, the second segment to class 2, and so on.
+Class labels can be synthesized from segments on an annotated training song, so that the columns of $X$ belonging to the first 
+segment are assigned to class 1, the second segment to class 2, and so on.
 However, interpreting each segment as a distinct class could result in a repeated verse being treated as two distinct classes which 
-cannot (and should not) be separated.  We therefore propose to relax the problem by only separating \emph{adjacent} segments 
-$(c, c+1)$, and replacing $A_B$ with the resulting \emph{ordinal scatter matrix}:
+cannot be separated.  
+
+Now, note that due to linkage constraints, the agglomerative clustering algorithm (\cref{sec:clustering}) only considers merge 
+operations over adjacent segments $(c, c+1)$. This motivates a relaxed LDA problem which only attempts to separate adjacent
+segments.  This is accomplished by replacing the between-class scatter matrix $A_B$ with the resulting \emph{ordinal scatter matrix}:
 \begin{align*}
 A_\text{O} &\defeq \sum_{c < C} n_c (\mu_c - \mu_{c+}) (\mu_c - \mu_{c+})\trans\\
 \mu_{c+} &\defeq \frac{n_c \mu_c + n_{c+1} \mu_{c+1} }{n_c + n_{c+1}}.
