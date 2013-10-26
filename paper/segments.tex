@@ -57,6 +57,7 @@ Music information retrieval, automatic segmentation, supervised learning
 \section{Introduction}
 \label{sec:intro}
 
+
 \subsection{Our contributions}
 Our primary contribution in this work is the ordinal linear discriminant analysis (OLDA) technique to learn a 
 feature transformation which is optimized for musical segmentation, or more generally, time-series clustering.
@@ -193,7 +194,9 @@ A_\text{W})$~\cite{de2005eigenproblems}.
 Class labels can be synthesized from segments on an annotated training song, so that the columns of $X$ belonging to the first 
 segment are assigned to class 1, the second segment to class 2, and so on.
 However, interpreting each segment as a distinct class could result in a repeated verse being treated as two distinct classes which 
-cannot be separated.  
+cannot be separated. 
+A more serious problem with this formulation is that it is unclear how to generalize across multiple songs, as it would result in
+FDA attempting to separate segments from different songs, which is somewhat meaningless for the single-song segmentation task.
 
 Now, note that due to linkage constraints, the agglomerative clustering algorithm (\cref{sec:clustering}) only considers merge 
 operations over adjacent segments $(c, c+1)$. This motivates a relaxed FDA problem which only attempts to separate adjacent
@@ -203,7 +206,7 @@ A_\text{O} &\defeq \sum_{c < C} n_c (\mu_c - \mu_{c+}) (\mu_c - \mu_{c+})\trans\
 \mu_{c+} &\defeq \frac{n_c \mu_c + n_{c+1} \mu_{c+1} }{n_c + n_{c+1}}.
 \end{align*}
 
-Because scatter matrices are accumulated linearly, it is also straightforward to generalize this across multiple training examples
+Because scatter matrices are accumulated linearly, it is also straightforward to generalize this across multiple training songs
 by summing their individual contributions.  Finally, because $A_\text{O}$ may be rank-degenerate, we include a smoothing parameter
 $\lambda > 0$.  The OLDA optimization takes the form:
 \begin{equation}
@@ -267,7 +270,8 @@ Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE 
 \label{sec:results}
 \begin{table*}
 \centering
-\caption{Segmentation results: best scores are indicated in bold. C-NMF and SI-LPCA scores are quoted from~\cite{nieto2013convex}.\label{tab:results}}
+\caption{Segmentation results. Best scores are indicated in bold; significance is assessed with a Bonferroni-corrected Wilcoxon
+signed-rank test with $p=0.05$. C-NMF and SI-LPCA scores are quoted from~\cite{nieto2013convex}.\label{tab:results}}
 \footnotesize
 \begin{tabular}{lrrrrrrrrrrrr}
 % \bottomrule%
@@ -275,8 +279,8 @@ Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE 
 \toprule%
 Algorithm   &   $P_{0.5s}$ & $R_{0.5s}$ & $F_{0.5s}$ & $P_{3s}$     & $R_{3s}$  & $F_{3s}$   & $S_O$ & $S_U$ & $S_F$ & $P_C$& $R_C$& $F_C$\\
 \hline
-Unweighted  &   0.446 & 0.390 & 0.408 & 0.704   & 0.603 & 0.640 & \textbf{0.842} & 0.755 & 0.791 & \textbf{0.780} & 0.613 & 0.668\\
-FDA         &   \textbf{0.455} & 0.416 & 0.427 & 0.688 & 0.620 & 0.642 & 0.839 & 0.778 & 0.802 & 0.774 & 0.653 & 0.691\\
+Unweighted  &   \textbf{0.446} & 0.390 & 0.408 & 0.704   & 0.603 & 0.640 & \textbf{0.842} & 0.755 & 0.791 & \textbf{0.780} & 0.613 & 0.668\\
+FDA         &   \textbf{0.455} & 0.416 & \textbf{0.427} & 0.688 & 0.620 & 0.642 & \textbf{0.839} & 0.778 & 0.802 & \textbf{0.774} & 0.653 & 0.691\\
 OLDA        &   0.438 & \textbf{0.447} & \textbf{0.434} & 0.685   & 0.680 & 0.670 & 0.828 & 0.808 & 0.813 & 0.744 & 0.686 & 0.694\\
 \hline
 SMGA~\hfill\cite{serra2012unsupervised}
@@ -288,10 +292,10 @@ SMGA~\hfill\cite{serra2012unsupervised}
 Unweighted  & 0.400 & 0.364 & 0.372 & 0.610 & 0.557 & 0.570 & 0.812 & 0.795 & 0.794 & 0.666 & 0.652 & 0.626\\
 FDA     &  \textbf{0.492} & 0.349 & \textbf{0.397} & \textbf{0.694} & 0.511 & 0.574 & \textbf{0.849} & 0.729 & 0.771 &
 \textbf{0.751} & 0.566 & 0.603\\
-OLDA    &  0.406 & \textbf{0.407} & 0.396 & 0.610 & 0.611 & \textbf{0.597} & 0.804 & 0.829 & \textbf{0.808} & 0.640 & 0.707 & \textbf{0.640}\\
+OLDA    &  0.406 & \textbf{0.407} & \textbf{0.396} & 0.610 & 0.611 & \textbf{0.597} & 0.804 & 0.829 & \textbf{0.808} & 0.640 & 0.707 & \textbf{0.640}\\
 \hline
 SMGA~\hfill\cite{serra2012unsupervised}
-        & 0.209 & 0.360 & 0.256 & 0.512 & \textbf{0.733} & 0.589 & 0.714 & \textbf{0.895} & 0.786 & 0.448 & \textbf{0.822} & 0.550\\
+        & 0.209 & 0.360 & 0.256 & 0.512 & \textbf{0.733} & \textbf{0.589} & 0.714 & \textbf{0.895} & 0.786 & 0.448 & \textbf{0.822} & 0.550\\
 C-NMF~\hfill\cite{nieto2013convex}            
         & -- & -- & -- & 0.430 & 0.523 & 0.451 & -- & -- & -- & -- & -- & -- \\
 SI-PLCA~\hfill\cite{weiss2011unsupervised}    
@@ -300,21 +304,21 @@ SI-PLCA~\hfill\cite{weiss2011unsupervised}
 \end{tabular}
 \end{table*}
 
-\begin{figure}
-\flushright%
-\includegraphics[width=\columnwidth]{figs/w}%
-\vspace{-\baselineskip}%
-\caption{OLDA models $W\trans$ learned on Beatles-ISO and SALAMI-free. Each row corresponds to a direction, 
-and they are ordered by decreasing importance from top to bottom.\label{fig:w}}
-\end{figure}
+% \begin{figure}
+% \flushright%
+% \includegraphics[width=\columnwidth]{figs/w}%
+% \vspace{-\baselineskip}%
+% \caption{OLDA models $W\trans$ learned on Beatles-ISO and SALAMI-free. Each row corresponds to a direction, 
+% and they are ordered by decreasing importance from top to bottom.\label{fig:w}}
+% \end{figure}
 
-\begin{figure}
-\flushright%
-\includegraphics[width=\columnwidth]{figs/fda-vs-olda}%
-\vspace{-\baselineskip}%
-\caption{FDA and OLDA models $W\trans$ learned on Beatles-ISO. Each row corresponds to a direction, 
-and they are ordered by decreasing importance from top to bottom.\label{fig:fda-vs-olda}}
-\end{figure}
+% \begin{figure}
+% \flushright%
+% \includegraphics[width=\columnwidth]{figs/fda-vs-olda}%
+% \vspace{-\baselineskip}%
+% \caption{FDA and OLDA models $W\trans$ learned on Beatles-ISO. Each row corresponds to a direction, 
+% and they are ordered by decreasing importance from top to bottom.\label{fig:fda-vs-olda}}
+% \end{figure}
 
 \Cref{tab:results} list the results for the Beatles-ISO and SALAMI-free.
 In \Cref{tab:results} (top), the SMGA method performs best on the majority of metrics,\footnote{We
@@ -328,18 +332,20 @@ However, both the unweighted and OLDA models achieve much higher accuracy for bo
 indicating that the proposed features are better at preserving clean segment boundaries.  
 
 On SALAMI-free (\cref{tab:results}, bottom), the trends are qualitatively similar as in Beatles-ISO, but the OLDA
-model achieves the highest scores on most metrics (and all F-scores). This is likely due to the proposed model's
+model achieves the largest improvement on the combined F-scores. This is likely due to the proposed model's
 ability to incorporate disparate feature types (timbre, pitch, and time), whereas the SMGA and C-NMF models are
 limited to using only pitch. 
 Because SALAMI-free includes a wider variety of styles and instrumentations than the Beatles-ISO set, 
 timbre can be an important cue for detecting salient change-points.
 
-In both datasets, OLDA training generally provides substantial improvements in accuracy over the unweighted model, 
-especially for the combined F-scores.
-The fact that the model parameters were transferred across datasets suggests some degree of universality of the
-learned transformation.  \Cref{fig:w} illustrates the transformation matrices $W$ learned on each dataset. Both
-transformations exhibit qualitatively similar block structure, and place most of the mass on the MFCC components
-(upper-left blocks) while suppressing chroma and placing intermediate weight on the repetition features.
+In both datasets, OLDA training generally provides substantial improvements in accuracy over the unweighted model. 
+The FDA models tend to improve precision, but often reduce recall.
+% \Cref{fig:fda-vs-olda} illustrates the transformation matrices $W$ learned by FDA and OLDA on the Beatles-ISO data.  
+
+% The fact that the model parameters were transferred across datasets suggests some degree of universality of the
+% learned transformation.  \Cref{fig:w} illustrates the transformation matrices $W$ learned on each dataset. Both
+% transformations exhibit qualitatively similar block structure, and place most of the mass on the MFCC components
+% (upper-left blocks) while suppressing chroma and placing intermediate weight on the repetition features.
 
 
 

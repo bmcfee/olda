@@ -9,6 +9,7 @@ import os
 import glob
 import numpy as np
 from pprint import pprint
+import scipy.stats
 
 # <codecell>
 
@@ -115,6 +116,46 @@ def plot_boxes(data):
 
 # <codecell>
 
+def get_top_sig(SETNAME, perfs, idx, p=0.05):
+    
+    # Pluck out the relevant algorithm
+    data = {}
+    mean = {}
+    best_mean = -np.inf
+    best_alg  = None
+    n_algs    = len(perfs)
+    
+    for k in perfs:
+        data[k] = perfs[k][:, idx]
+        mean[k] = np.mean(data[k])
+        if mean[k] > best_mean:
+            best_mean = mean[k]
+            best_alg = k
+    
+    
+    
+    # Compute pairwise tests against the best
+    sigdiff = {}
+    for k in perfs:
+        if k == best_alg:
+            sigdiff[k] = 1.0
+            continue
+        # Get the p-value
+        _z, _p = scipy.stats.wilcoxon(data[best_alg], data[k])
+        sigdiff[k] = _p
+        
+        
+    # Print the results
+    ordering = [(v, k) for k, v in mean.iteritems()]
+    ordering.sort(reverse=True)
+    
+    print '%s\t%s' % (METRICS[idx], SETNAME)
+    
+    for (v, k) in ordering:
+        print '%.3f\t%10s\t%.3e\t%r' % (v, k, sigdiff[k], sigdiff[k] * (n_algs -1) < p)
+
+# <codecell>
+
 def get_worst_examples(SETNAME, perfs, algorithm, idx, k=10):
     files = sorted(map(os.path.basename, glob.glob('%s/predictions/%s/%s/*' % (ROOTPATH, SETNAME, algorithm))))
     
@@ -149,6 +190,12 @@ ind_perfs_beatles = evaluate_set('BEATLES', agg=False)
 
 # <codecell>
 
+for idx in range(len(METRICS)):
+    get_top_sig('BEATLES', ind_perfs_beatles, idx=idx)
+    print
+
+# <codecell>
+
 plot_boxes(ind_perfs_beatles)
 
 # <codecell>
@@ -162,6 +209,12 @@ pprint(perfs_salami)
 # <codecell>
 
 ind_perfs_salami = evaluate_set('SALAMI', agg=False)
+
+# <codecell>
+
+for idx in range(len(METRICS)):
+    get_top_sig('SALAMI', ind_perfs_salami, idx=idx)
+    print
 
 # <codecell>
 
@@ -302,10 +355,10 @@ savefig('/home/bmcfee/git/olda/paper/figs/w.pdf', format='pdf', pad_inches=0, tr
 
 model_fda_beatles = np.load('/home/bmcfee/git/olda/data/model_fda_beatles.npy')
 model_olda_beatles  = np.load('/home/bmcfee/git/olda/data/model_olda_beatles.npy')
-figure(figsize=(4,4))
+figure(figsize=(4,3))
 subplot(211)
 imshow(model_fda_beatles, aspect='auto', interpolation='none', cmap='PRGn_r')
-ylabel('FDA Beatles')
+ylabel('FDA')
 yticks([])
 #ylabel("More important $\\rightarrow$")
 #xticks([0, 32, 44, 76, 108], ['MFCC', 'Chroma', 'Rep-M', 'Rep-C', 'Time'], rotation=-30, horizontalalignment='left')
@@ -314,7 +367,7 @@ xticks([])
 
 subplot(212)
 imshow(model_salami, aspect='auto', interpolation='none', cmap='PRGn_r')
-ylabel('OLDA Beatles')
+ylabel('OLDA')
 #colorbar(orientation='horizontal')
 #ylabel("More important $\\rightarrow$")
 yticks([])
