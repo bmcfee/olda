@@ -179,7 +179,7 @@ and class labels $y_i \in \{1,2,\ldots, C\}$, and produces a linear transformati
 maximizes the distance between class centroids, and minimizes the variance of each class 
 individually~\cite{fukunaga1990introduction}. This is accomplished by solving the following optimization:
 \begin{equation}
-W \defeq \argmin_W \trace\left( {(W\trans A_\text{B} W)}^{-1} W\trans A_\text{W} W \right) \label{eq:fda},
+W \defeq \argmax_W \trace\left( {(W\trans A_\text{W} W)}^{-1} W\trans A_\text{B} W \right) \label{eq:fda},
 \end{equation}
 where $A_\text{W}$ and $A_\text{B}$ are the \emph{within-} and \emph{between}-class scatter matrices:
 \begin{align*}
@@ -206,7 +206,7 @@ Because scatter matrices are accumulated linearly, it is also straightforward to
 by summing their individual contributions.  Finally, because $A_\text{O}$ may be rank-degenerate, we include a smoothing parameter
 $\lambda > 0$.  The OLDA optimization takes the form:
 \begin{equation}
-W \defeq \argmin_W \trace\left( {(W\trans (A_\text{O} + \lambda I) W)}^{-1} W\trans A_\text{W} W \right) \label{eq:olda},
+W \defeq \argmin_W \trace\left( {(W\trans (A_\text{W} + \lambda I) W)}^{-1} W\trans A_\text{O} W \right) \label{eq:olda},
 \end{equation}
 which again can be solved efficiently as a generalized eigenvalue problem.
 

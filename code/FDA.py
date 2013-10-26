@@ -40,27 +40,25 @@ class FDA(BaseEstimator, TransformerMixin):
 
         n, d_orig           = X.shape
         classes             = np.unique(Y)
-        n_classes           = classes.size
 
         assert(len(Y) == n)
 
         mean_global         = np.mean(X, axis=0, keepdims=True)
-        cov_global          = np.cov(X, rowvar=0) + self.alpha * np.eye(d_orig)
-
-        mean_scatter        = np.zeros_like(cov_global)
+        scatter_within      = self.alpha * np.eye(d_orig)
+        scatter_between     = np.zeros_like(scatter_within)
 
         for c in classes:
+            n_c             = np.sum(Y==c)
             mu_diff         = np.mean(X[Y==c], axis=0, keepdims=True) - mean_global
-            mean_scatter    = mean_scatter + np.dot(mu_diff.T, mu_diff) 
+            scatter_between = scatter_between + n_c * np.dot(mu_diff.T, mu_diff)
+            scatter_within  = scatter_within  + n_c * np.cov(X[Y==c], rowvar=0)
 
-        mean_scatter        = mean_scatter / n_classes
-
-        e_vals, e_vecs      = scipy.linalg.eig(mean_scatter, cov_global)
+        e_vals, e_vecs      = scipy.linalg.eig(scatter_between, scatter_within)
 
         self.e_vals_        = e_vals
         self.e_vecs_        = e_vecs
         
-        self.components_    = e_vecs.T[:min(n_classes, d_orig),:]
+        self.components_    = e_vecs.T
 
         return self
 
