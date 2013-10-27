@@ -131,7 +131,7 @@ This makes it difficult to directly model and generalize across collections.
 However, note that methods which depend on distances between column-vectors ${\|R_{\cdot, i} - R_{\cdot, j}\|}$ --- 
 \eg, Euclidean clustering or novelty curve peak-picking --- are invariant to unitary transformations.
 
-Rather than use $R$ directly, we propose to use \emph{latent structural repetition} features, which compress each
+Rather than use $R$ directly, we define \emph{latent structural repetition} features, which compress each
 any song's $R$ matrix to a fixed-dimension representation.  Let $R = U\Sigma V\trans$ denote the singular value decomposition of $R$,
 with (descending) singular values $\sigma_i$. The latent structural repetition feature (\cref{fig:rep}, bottom-right) is defined as the matrix $L$:
 \begin{equation}
@@ -139,8 +139,8 @@ L \defeq \sigma_1^{-1} U\trans R = \sigma_1^{-1} \Sigma V\trans.\label{eq:latent
 \end{equation}
 Reducing $L$ to $d < 2t$ principal components (rows) retains the most important factors, and normalizing by $\sigma_1$ ensures that
 features maintain the same relative magnitude independent of track duration.  \Cref{fig:rep} (bottom-right) depicts an example of
-the resulting low-dimensional features.  In practice, small values of $d$ suffice to capture high-level structure: in the given
-example, segment boundaries are encoded within the top two factors.
+the resulting features.  In practice, small values of $d$ suffice to capture global structure: in the given
+example, internal segment position and segment boundaries are encoded within the top two components.
 
 \begin{figure}
 \centering%
