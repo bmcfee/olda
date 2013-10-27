@@ -226,7 +226,7 @@ A_\text{O} &\defeq \sum_{c < C} n_c (\mu_c - \mu_{c+}) (\mu_c - \mu_{c+})\trans\
 \mu_{c+} &\defeq \frac{n_c \mu_c + n_{c+1} \mu_{c+1} }{n_c + n_{c+1}}.
 \end{align*}
 
-Because $A_\text{W}$ may be rank-degenerate, we include a smoothing parameter
+Because $A_\text{W}$ may be singular, we include a smoothing parameter
 $\lambda > 0$.\footnote{The same regularization strategy is applied to FDA in \Cref{sec:eval}.} 
 The OLDA optimization takes the form:
 \begin{equation}
@@ -267,21 +267,21 @@ On SALAMI-Free, we include comparisons to C-NMF~\cite{nieto2013convex} and SI-LP
 For both datasets, we evaluate the unweighted feature representation (\emph{Unweighted}), FDA optimization (using the
 one-class-per-segment approach described in \Cref{sec:olda}), and OLDA.\@
 To ensure fairness of evaluation, the FDA and OLDA models used on the Beatles-ISO were trained using only
-SALAMI-free data, and vice versa.  FDA and OLDA were trained with $\lambda \in \{10^0, 10^1, \dots, 10^7\}$, 
-and choosing the $\lambda$ which maximized $S_F$ score (see below) on the training set.
+SALAMI-free data, and vice versa.  FDA and OLDA were trained by optimizing $\lambda \in \{10^0, 10^1, \dots, 10^7\}$
+to maximize $S_F$ score (see below) on the training set.
 
 We report the following standard segmentation metrics:
 \footnote{For a detailed description of segmentation metrics, see~\cite{mirexstructure}.}
 \begin{description}\addtolength{\itemsep}{-0.25\baselineskip}%
-\item[Boundary retrieval] Precision, recall, and F-measure at both 0.5s and 3s resolution,
+\item[Boundary retrieval] Precision, recall, and F-measure of segment boundary detection within a 0.5s or 3s window,
 \item[Normalized conditional entropy] (NCE) Over- and under-segmentation scores $S_O$ and $S_U$, and their harmonic
 mean $S_F$, and
 \item[Frame clustering] Precision ($P_C$), recall ($R_C$), and F-measure ($F_C$) of detecting whether any two frames 
 belong to the same segment.
 \end{description}
-Note that boundary retrieval and frame clustering metrics are highly sensitive to changes in the number of
+Note that boundary retrieval and frame clustering metrics are sensitive to changes in the number of
 predicted segments, upon which multiple human annotators often disagree for the same track. 
-The NCE metrics are designed to be fairly robust to changes in segmentation granularity.
+The NCE metrics are designed to be robust to changes in segmentation granularity.
 Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE and frame clustering metrics. 
 
 

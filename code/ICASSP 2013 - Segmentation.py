@@ -48,12 +48,9 @@ def evaluate_set(SETNAME, agg=True):
         
         for t, p in zip(truth, predictions):
             S = []
-            S.extend(mir_eval.segment.boundary_detection(t[1:-1], p[1:-1], window=0.5))
-            S.extend(mir_eval.segment.boundary_detection(t[1:-1], p[1:-1], window=3.0))
-            S.extend(mir_eval.segment.boundary_deviation(t[1:-1], p[1:-1]))
-            #S.extend(mir_eval.segment.boundary_detection(t, p, window=0.5))
-            #S.extend(mir_eval.segment.boundary_detection(t, p, window=3.0))
-            #S.extend(mir_eval.segment.boundary_deviation(t, p))
+            S.extend(mir_eval.segment.boundary_detection(t, p, window=0.5))
+            S.extend(mir_eval.segment.boundary_detection(t, p, window=3.0))
+            S.extend(mir_eval.segment.boundary_deviation(t, p))
             S.extend(mir_eval.segment.frame_clustering_nce(t, p))
             S.extend(mir_eval.segment.frame_clustering_pairwise(t, p))
             S.extend(mir_eval.segment.frame_clustering_mutual_information(t, p))
