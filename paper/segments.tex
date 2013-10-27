@@ -121,14 +121,14 @@ matrix. To easily detect repeated sections, the self-similarity matrix is skewed
 
 Using nearest-neighbor linkage to compute the self-similarity matrix results in spurious links and skipped connections. 
 Serr\`{a}~\etal{} resolve this by convolving with a Gaussian filter, which effectively suppresses noise, but also blurs
-segment boundaries. Instead, we propose to use a horizontal median filter, which (for odd window length) produces a binary matrix,
+segment boundaries. Instead, we use a horizontal median filter, which (for odd window length) produces a binary matrix,
 suppresses links which do not belong to long sequences of repetitions, and fills in skipped conections (\cref{fig:rep},
 bottom-left). Because median filtering preserves edges, we may expect more precise boundary detection.
 
 Let $R \in \R^{2t \times t}$ denote the median-filtered, skewed self-similarity matrix over $t$ beats.  
-Note that different songs have different durations, so the dimensionality of $R$ changes from one song to this. 
-This makes it difficult to directly model and generalize across collections of songs.
-However, methods which depend on distances between column-vectors ${\|R_{\cdot, i} - R_{\cdot, j}\|}$ --- 
+Note that different songs have different durations, so the dimensionality of $R$ varies for different songs. 
+This makes it difficult to directly model and generalize across collections.
+However, note that methods which depend on distances between column-vectors ${\|R_{\cdot, i} - R_{\cdot, j}\|}$ --- 
 \eg, Euclidean clustering or novelty curve peak-picking --- are invariant to unitary transformations.
 
 Rather than use $R$ directly, we propose to use \emph{latent structural repetition} features, which compress each
@@ -137,16 +137,16 @@ with (descending) singular values $\sigma_i$. The latent structural repetition f
 \begin{equation}
 L \defeq \sigma_1^{-1} U\trans R = \sigma_1^{-1} \Sigma V\trans.\label{eq:latent-rep}
 \end{equation}
-Truncating $L$ to $d < 2t$ rows preserves the most important factors, and normalizing by $\sigma_1$ ensures that
-features maintain the same relative magnitude independent of track duration.  As depicted in \Cref{fig:rep}, small values of $d$
-suffice to capture high-level structure: in the given example, the key structural components are indicated by the value of the first
-factor.
+Reducing $L$ to $d < 2t$ principal components (rows) retains the most important factors, and normalizing by $\sigma_1$ ensures that
+features maintain the same relative magnitude independent of track duration.  \Cref{fig:rep} (bottom-right) depicts an example of
+the resulting low-dimensional features.  In practice, small values of $d$ suffice to capture high-level structure: in the given
+example, segment boundaries are encoded within the top two factors.
 
 \begin{figure}
 \centering%
 \includegraphics[width=\columnwidth]{figs/rep}
 \vspace{-2\baselineskip}
-\caption{Repetition features derived from \emph{Tupac Shakur -- Trapped}. 
+\caption{Repetition features derived from \emph{Tupac Shakur --- Trapped}. 
 Top-left: a binary self-similarity ($k$-nearest-neighbor) matrix over beats.
 Top-right: the time-lag transformation of the self-similarity matrix.
 Bottom-left: the result of the horizontal median filter.
@@ -158,19 +158,19 @@ Bottom-right: 8-dimensional latent factor representation (best viewed in color).
 \label{sec:clustering}
 Given a feature matrix $X \in \R^{D\times t}$, we produce a hierarchical clustering of the columns of $X$ by using the
 linkage-constrained variant of Ward's agglomerative clustering algorithm~\cite{ward1963hierarchical} as implemented in
-\texttt{scikit-learn}~\cite{pedregosa2011scikit}.  Specifically, for each column $i$, linkage constraints are generated
-for $(i-1, i)$ and $(i, i+1)$, so the linkage graph forms a chain.  Starting from $t$ clusters (each column of $X$), the 
-algorithm then iteratively merges the two closest (feasible) clusters until only one remains.
-The full hierarchy is computed after at most $\Oh(t)$ merge operations, and due to the constraints, 
-there are only $\Oh(t)$ feasible merges. 
-Each merge operation takes time $\Oh(D + \log t)$ (to compute distance and manage a priority queue), so the algorithm runs in $\Oh(tD + t\log t)$ time.
-When $D > \log t$, the cost of clustering is dominated by the $\Omega(tD)$ cost of computing $X$.
+\texttt{scikit-learn}~\cite{pedregosa2011scikit}.  For each column $X_{\cdot,i}$, linkage constraints are generated
+for $(i-1, i)$ and $(i, i+1)$, so the linkage graph forms a chain.  Starting from $t$ clusters (one for each column of $X$), 
+the two closest linked clusters are iteratively merged until only one remains.
+The hierarchy is computed in $\Oh(t)$ merge operations, and due to the constraints, 
+there are $\Oh(t)$ feasible merges at each step. 
+Each merge operation takes time $\Oh(D + \log t)$ (to compute centroids and manage a priority queue), so the algorithm runs in $\Oh(tD + t\log t)$ time.
+For $D \in \Omega(\log t)$, the cost of clustering is dominated by the $\Omega(tD)$ cost of computing $X$.
 
 \subsection{Choosing the number of segments}
 The hierarchical clustering produces segmentations for all numbers of segments $1 \leq k \leq t$.  While a multi-scale view can 
-be useful in some scenarios --- such as interactive data exploration --- standard evaluations rely on flat partitions. 
+be useful in some scenarios --- such as interactive data exploration --- standard evaluations rely on flat segmentations. 
 To select $k$, we compute the clustering cost of each pruning within a plausible bounded range 
-$k_{\min} \leq k \leq k_{\max}$.  The bounds are determined dynamically by assuming average minimum and maximum segment duration 
+$k_{\min} \leq k \leq k_{\max}$.  The bounds are determined by assuming average minimum and maximum segment duration 
 of 10s and 45s.  AIC correction~\cite{akaike1973information} is then applied to each candidate pruning (assuming a spherical 
 Gaussian model for each segment), and $k$ is chosen to minimize the AIC-corrected cost.
 
@@ -179,9 +179,9 @@ Structural repetition features are most commonly used to detect repeated chord s
 support any kind of feature descriptor.  We aggregate several types of feature descriptors for each beat:
 \begin{description}\addtolength{\itemsep}{-0.5\baselineskip}%
 \item[MFCC]   Beat-synchronous (mean) Mel-frequency cepstral coefficients and their latent repetitions;
-\item[Chroma] Beat-synchronous (median) chroma vectors and their latent repetitions; and
-\item[Time]   Beat time-stamps (seconds), normalized time-stamps, beat indices ($1, 2, \ldots, t$), 
-and normalized beat indices ($1/t, 2/t, \ldots, 1.0$).
+\item[Chroma] Beat-synchronous (median) chroma and their latent repetitions; and
+\item[Time]   Time-stamp (in seconds) of each beat, normalized time-stamps (as a fraction of track duration), 
+beat indices $(1, 2, \ldots, t)$, and normalized beat indices\\ $(1/t, 2/t, \ldots, 1)$.
 \end{description}
 The MFCC features capture local timbre, and repeated timbre sequences. 
 Similarly, chroma features capture local pitch similarity and sequential repetitions.
@@ -226,8 +226,7 @@ A_\text{O} &\defeq \sum_{c < C} n_c (\mu_c - \mu_{c+}) (\mu_c - \mu_{c+})\trans\
 \mu_{c+} &\defeq \frac{n_c \mu_c + n_{c+1} \mu_{c+1} }{n_c + n_{c+1}}.
 \end{align*}
 
-Because scatter matrices are accumulated linearly, it is also straightforward to generalize this across multiple training songs
-by summing their individual contributions.  Finally, because $A_\text{W}$ may be rank-degenerate, we include a smoothing parameter
+Because $A_\text{W}$ may be rank-degenerate, we include a smoothing parameter
 $\lambda > 0$.\footnote{The same regularization strategy is applied to FDA in \Cref{sec:eval}.} 
 The OLDA optimization takes the form:
 \begin{equation}
@@ -236,8 +235,10 @@ W \defeq \argmax_W \trace\left( {(W\trans (A_\text{W} + \lambda I) W)}^{-1} W\tr
 which again can be solved efficiently as a generalized eigenvalue problem over the matrix pair 
 $(A_\text{O}, A_\text{W} + \lambda I)$.
 
+Because interactions are only measured between neighboring segments, it is 
+straightforward to include data from multiple songs by summing their individual contributions to $A_\text{O}$ and $A_\text{W}$.
 After learning $W$, the feature matrix $X$ for a previously unseen song is transformed via $X \mapsto W\trans X$, and then 
-given as input to the clustering algorithm described in \Cref{sec:clustering}.
+clustered as described in \Cref{sec:clustering}.
 
 \section{Evaluation}
 \label{sec:eval}
@@ -256,15 +257,15 @@ To evaluate the proposed methods, we evaluate predicted segmentations on two pub
 Internet Archive~\cite{nieto2013convex}.
 \end{description}
 Both datasets provide labels for each annotated segment (\eg, \emph{verse} or \emph{intro}), but we ignore these
-labels in this set of experiments. Compared to the Beatles corpus, SALAMI has much more diversity of style, genre, 
-instrumentation, and artists, and is therefore a more challenging dataset.
+labels in this set of experiments. Compared to the Beatles corpus, SALAMI consists of tracks by multiple artists, 
+and has much more diversity of genre, style, and instrumentation.
 
 On both datasets, we compare to SMGA~\cite{serra2012unsupervised}, which achieved the
 highest performance in the 2012 MIREX structural segmentation evaluation~\cite{Downie2008}.
 On SALAMI-Free, we include comparisons to C-NMF~\cite{nieto2013convex} and SI-LPCA~\cite{weiss2011unsupervised}.
 
 For both datasets, we evaluate the unweighted feature representation (\emph{Unweighted}), FDA optimization (using the
-one-class-per-segment approach described in \Cref{sec:olda}), and OLDA. 
+one-class-per-segment approach described in \Cref{sec:olda}), and OLDA.\@
 To ensure fairness of evaluation, the FDA and OLDA models used on the Beatles-ISO were trained using only
 SALAMI-free data, and vice versa.  FDA and OLDA were trained with $\lambda \in \{10^0, 10^1, \dots, 10^7\}$, 
 and choosing the $\lambda$ which maximized $S_F$ score (see below) on the training set.
@@ -287,30 +288,20 @@ Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE 
 \subsection{Results}
 \label{sec:results}
 
-\Cref{tab:results} list the results for the Beatles-ISO and SALAMI-free.
-In \Cref{tab:results} (top), the SMGA method performs best on the majority of metrics,\footnote{We
-note that the SMGA parameters were optimized to perform well on this set (listed as
-Beatles-B)~\cite{serra2012unsupervised}.}
-however, the scores on the NCE metrics ($S_O, S_U, S_F$) are qualitatively comparable between SMGA and OLDA ($S_F$ of 0.829
-and 0.813, respectively). 
-This suggests that SMGA and the proposed methods are producing segmentations of comparable quality, but 
-different levels of granularity.
-However, the unweighted, FDA, and OLDA models achieve much higher accuracy for boundary detection at 0.5s resolution,
-indicating that the proposed features are better at preserving clean segment boundaries.  
+\Cref{tab:results} lists the results for the Beatles-ISO and SALAMI-free.
+SMGA performs best on the majority of metrics for Beatles-ISO (\cref{tab:results}, top),\footnote{SMGA parameters were selected to 
+perform well on the Beatles data~\cite{serra2012unsupervised}.}
+The scores on the NCE metrics ($S_O, S_U, S_F$) are qualitatively comparable between SMGA and OLDA ($S_F$ of 0.829 and 0.813, respectively),
+suggesting that SMGA and the proposed methods are producing segmentations of comparable quality, but different levels of granularity.
+The unweighted, FDA, and OLDA models all achieve higher accuracy for boundary detection at 0.5s resolution.
 
-On SALAMI-free (\cref{tab:results}, bottom), the trends are qualitatively similar as in Beatles-ISO, but the OLDA
-model consistently achieves the highest F-score. 
-This is likely due to the proposed model's ability to incorporate disparate feature types (timbre, pitch, and time), whereas the SMGA and C-NMF models are limited to using only pitch. 
-Because SALAMI-free includes a wider variety of styles and instrumentations than the Beatles-ISO set, 
-timbre can be an important cue for detecting salient change-points.
-
-In both datasets, OLDA training generally provides substantial improvements in accuracy over the unweighted model. 
-The FDA models significantly improve precision measures, but sacrifice recall.
-
-
+Results on the SALAMI-free data (\cref{tab:results}, bottom) are mixed, though the FDA and OLDA methods both show marked
+improvement over the unweighted method.  Overall, the OLDA model tends to achieve a better balance between precision and recall
+than FDA, and achieves maximal F-scores on all but 3s boundary detection. 
 
 \section{Conclusion}
 \label{sec:conclusion}
+
 
 \bibliographystyle{IEEEbib}
 \bibliography{refs}

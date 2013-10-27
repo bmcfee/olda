@@ -172,7 +172,7 @@ def get_worst_examples(SETNAME, perfs, algorithm, idx, k=10):
 # <codecell>
 
 for alg in sorted(ind_perfs_beatles.keys()):
-    get_worst_examples('BEATLES', ind_perfs_beatles, alg, 10, 5)
+    get_worst_examples('BEATLES', ind_perfs_beatles, alg, 5, 10)
     print
 
 # <codecell>
@@ -219,6 +219,12 @@ ind_perfs_salami = evaluate_set('SALAMI', agg=False)
 
 # <codecell>
 
+for alg in sorted(ind_perfs_beatles.keys()):
+    get_worst_examples('SALAMI', ind_perfs_salami, alg, 10, 5)
+    print
+
+# <codecell>
+
 for idx in range(len(METRICS)):
     get_top_sig('SALAMI', ind_perfs_salami, idx=idx)
     print
@@ -246,7 +252,7 @@ def get_beat_mfccs(filename):
     
     tempo, beats = librosa.beat.beat_track(y, sr, n_fft=2048, hop_length=64)
     
-    M = librosa.feature.mfcc(S, d=32)
+    M = librosa.feature.mfcc(librosa.logamplitude(S), d=32)
     M = librosa.feature.sync(M, beats)
     return M
 
@@ -283,7 +289,7 @@ def make_rep_feature_plot(M):
     
     myimshow = functools.partial(imshow, aspect='auto', interpolation='none', origin='lower', cmap='gray_r')
     
-    R = librosa.segment.recurrence_matrix(M, k=np.sqrt(1./M.shape[1]), sym=False).astype(np.float)
+    R = librosa.segment.recurrence_matrix(M, k=2*np.sqrt(1./M.shape[1]), sym=False).astype(np.float)
     
     Rskew = librosa.segment.structure_feature(R, pad=True)
     Rskew = np.roll(Rskew, M.shape[1], axis=0)
@@ -302,13 +308,13 @@ def make_rep_feature_plot(M):
     yticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
     subplot(222)
-    myimshow(Rskew), title('Skewed similarity')
+    myimshow(Rskew), title('Skewed self-sim.')
     xlabel('Beat'), ylabel('Lag')
     yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1], M.shape[1] + 1, Rskew.shape[0] / 6))
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
     subplot(223)
-    myimshow(Rfilt), title('Median-filtering')
+    myimshow(Rfilt), title('Filtered self-sim.')
     xlabel('Beat'), ylabel('Lag')
     yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1], M.shape[1] + 1, Rskew.shape[0] / 6))
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
@@ -327,7 +333,7 @@ M = get_beat_mfccs('/home/bmcfee/data/CAL500/mp3/2pac-trapped.mp3')
 
 # <codecell>
 
-make_rep_feature_plot(M[:,:150])
+make_rep_feature_plot(M[:,40:140])
 
 # <codecell>
 
