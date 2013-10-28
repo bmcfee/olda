@@ -30,7 +30,8 @@
 % Two addresses (uncomment and modify for two-address case).
 % ----------------------------------------------------------
 \twoauthors%
- {Brian McFee}{ Center for Jazz Studies\\
+ {Brian McFee\thanks{This work was supported by a grant from the Mellon foundation, and
+grant IIS-1117015 from the National Science Foundation (NSF).}}{ Center for Jazz Studies\\
       Columbia University\\
   \texttt{brm2132@columbia.edu}}%
  {Daniel P.W. Ellis}{
@@ -160,7 +161,7 @@ Given a feature matrix $X \in \R^{D\times t}$, we produce a hierarchical cluster
 linkage-constrained variant of Ward's agglomerative clustering algorithm~\cite{ward1963hierarchical} as implemented in
 \texttt{scikit-learn}~\cite{pedregosa2011scikit}.  For each column $X_{\cdot,i}$, linkage constraints are generated
 for $(i-1, i)$ and $(i, i+1)$, so the linkage graph forms a chain.  Starting from $t$ clusters (one for each column of $X$), 
-the two closest linked clusters are iteratively merged until only one remains.
+linked clusters are iteratively merged until only one remains.
 The hierarchy is computed in $\Oh(t)$ merge operations, and due to the constraints, 
 there are $\Oh(t)$ feasible merges at each step. 
 Each merge operation takes time $\Oh(D + \log t)$ (to compute centroids and manage a priority queue), so the algorithm runs in $\Oh(tD + t\log t)$ time.
