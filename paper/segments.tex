@@ -132,12 +132,15 @@ This makes it difficult to directly model and generalize across collections.
 However, note that methods which depend on distances between column-vectors ${\|R_{\cdot, i} - R_{\cdot, j}\|}$ --- 
 \eg, Euclidean clustering or novelty curve peak-picking --- are invariant to unitary transformations.
 
+What matters for segmentation is not the representation of the columns of $R$, but the similarity between them.
 Rather than use $R$ directly, we define \emph{latent structural repetition} features, which compress each
 any song's $R$ matrix to a fixed-dimension representation.  Let $R = U\Sigma V\trans$ denote the singular value decomposition of $R$,
-with (descending) singular values $\sigma_i$. The latent structural repetition feature (\cref{fig:rep}, bottom-right) is defined as the matrix $L$:
+with (descending) singular values $\sigma_i$. 
+The latent structural repetition feature (\cref{fig:rep}, bottom-right) is defined as the matrix $L$:
 \begin{equation}
 L \defeq \sigma_1^{-1} U\trans R = \sigma_1^{-1} \Sigma V\trans.\label{eq:latent-rep}
 \end{equation}
+
 Reducing $L$ to $d < 2t$ principal components (rows) retains the most important factors, and normalizing by $\sigma_1$ ensures that
 features maintain the same relative magnitude independent of track duration.  \Cref{fig:rep} (bottom-right) depicts an example of
 the resulting features.  In practice, small values of $d$ suffice to capture global structure: in the given
@@ -169,7 +172,6 @@ For $D \in \Omega(\log t)$, the cost of clustering is dominated by the $\Omega(t
 
 \subsection{Choosing the number of segments}
 The hierarchical clustering produces segmentations for all numbers of segments $1 \leq k \leq t$.  
-% While a multi-scale view can be useful in some scenarios --- such as interactive data exploration --- standard evaluations rely on flat segmentations. 
 Because music segmentation is itself an ambiguous task, the ability to simultaneously produce segmentations at all resolutions is a key advantage of the 
 proposed technique, and can be especially useful in interactive displays for data exploration.  
 However, standard evaluation procedures are defined only for flat segmentations, and require a specific pruning of the segment hierarchy into some $k$ 
@@ -231,9 +233,10 @@ segments.  This is accomplished by replacing the between-class scatter matrix $A
 A_\text{O} &\defeq \sum_{c < C} n_c (\mu_c - \mu_{c+}) (\mu_c - \mu_{c+})\trans\\
 \mu_{c+} &\defeq \frac{n_c \mu_c + n_{c+1} \mu_{c+1} }{n_c + n_{c+1}}.
 \end{align*}
-Intuitively, $A_\text{O}$ measures the deviation of neighboring segments $(c, c+1)$ from the mutual centroid $\mu_{c+}$, \ie,
+Intuitively, $A_\text{O}$ measures the deviation of successive segments $(c, c+1)$ from their mutual centroid $\mu_{c+}$, \ie,
 the centroid resulting from merging $c$ and $c+1$.  This is exactly the type of merge operation encountered in the agglomerative
-clustering algorithm described in \Cref{sec:clustering}.
+clustering algorithm described in \Cref{sec:clustering}.  Optimizing $W$ to maximize this deviation, while minimizing within-segment variance,
+should enhance the overall segmentation accuracy.  While FDA has a similar objective, its relation to our specific clustering objective is more tenuous.
 
 Because $A_\text{W}$ may be singular, we include a smoothing parameter
 $\lambda > 0$.\footnote{The same regularization strategy is applied to FDA in \Cref{sec:eval}.} 
