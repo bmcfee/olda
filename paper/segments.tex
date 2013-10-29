@@ -168,8 +168,13 @@ Each merge operation takes time $\Oh(D + \log t)$ (to compute centroids and mana
 For $D \in \Omega(\log t)$, the cost of clustering is dominated by the $\Omega(tD)$ cost of computing $X$.
 
 \subsection{Choosing the number of segments}
-The hierarchical clustering produces segmentations for all numbers of segments $1 \leq k \leq t$.  While a multi-scale view can 
-be useful in some scenarios --- such as interactive data exploration --- standard evaluations rely on flat segmentations. 
+The hierarchical clustering produces segmentations for all numbers of segments $1 \leq k \leq t$.  
+% While a multi-scale view can be useful in some scenarios --- such as interactive data exploration --- standard evaluations rely on flat segmentations. 
+Because music segmentation is itself an ambiguous task, the ability to simultaneously produce segmentations at all resolutions is a key advantage of the 
+proposed technique, and can be especially useful in interactive displays for data exploration.  
+However, standard evaluation procedures are defined only for flat segmentations, and require a specific pruning of the segment hierarchy into some $k$ 
+distinct segments.
+
 To select $k$, we compute the clustering cost of each pruning within a plausible bounded range 
 $k_{\min} \leq k \leq k_{\max}$.  The bounds are determined by assuming average minimum and maximum segment duration 
 of 10s and 45s.  AIC correction~\cite{akaike1973information} is then applied to each candidate pruning (assuming a spherical 
@@ -192,7 +197,7 @@ All features can be stacked together into a single feature matrix $X \in \R^{D\t
 above. However, the relative magnitude and importance of each feature is not calibrated to produce optimal clusterings. 
 
 \section{Ordinal linear discriminant analysis}
-\input{results-adj.tex}
+%\input{results-adj.tex}
 
 \label{sec:olda}
 To improve the feature representation for clustering, we propose a simple adaptation of Fisher's linear discriminant
@@ -226,6 +231,9 @@ segments.  This is accomplished by replacing the between-class scatter matrix $A
 A_\text{O} &\defeq \sum_{c < C} n_c (\mu_c - \mu_{c+}) (\mu_c - \mu_{c+})\trans\\
 \mu_{c+} &\defeq \frac{n_c \mu_c + n_{c+1} \mu_{c+1} }{n_c + n_{c+1}}.
 \end{align*}
+Intuitively, $A_\text{O}$ measures the deviation of neighboring segments $(c, c+1)$ from the mutual centroid $\mu_{c+}$, \ie,
+the centroid resulting from merging $c$ and $c+1$.  This is exactly the type of merge operation encountered in the agglomerative
+clustering algorithm described in \Cref{sec:clustering}.
 
 Because $A_\text{W}$ may be singular, we include a smoothing parameter
 $\lambda > 0$.\footnote{The same regularization strategy is applied to FDA in \Cref{sec:eval}.} 
@@ -274,11 +282,14 @@ to maximize $S_F$ score (see below) on the training set.
 We report the following standard segmentation metrics:
 \footnote{For a detailed description of segmentation metrics, see~\cite{mirexstructure}.}
 \begin{description}\addtolength{\itemsep}{-0.25\baselineskip}%
-\item[Boundary retrieval] Precision, recall, and F-measure of segment boundary detection within a 0.5s or 3s window,
-\item[Normalized conditional entropy] (NCE) Over- and under-segmentation scores $S_O$ and $S_U$, and their harmonic
-mean $S_F$, and
-\item[Frame clustering] Precision ($P_C$), recall ($R_C$), and F-measure ($F_C$) of detecting whether any two frames 
-belong to the same segment.
+% \item[Boundary retrieval] Precision, recall, and F-measure of segment boundary detection within a 0.5s or 3s window,
+\item[Boundary retrieval] F-measure of segment boundary detection within a 0.5s or 3s window,
+% \item[Normalized conditional entropy] (NCE) Over- and under-segmentation scores $S_O$ and $S_U$, and their harmonic
+% mean $S_F$, and
+\item[Normalized conditional entropy] (NCE) Harmonic mean ($S_F$) of over- and under-segmentation $S_O$ and $S_U$, 
+% \item[Frame clustering] Precision ($P_C$), recall ($R_C$), and F-measure ($F_C$) of detecting whether any two frames 
+% belong to the same segment.
+\item[Frame clustering] F-measure ($F_C$) of detecting whether any two frames belong to the same segment.
 \end{description}
 Note that boundary retrieval and frame clustering metrics are sensitive to changes in the number of
 predicted segments, upon which multiple human annotators often disagree for the same track. 
@@ -288,17 +299,20 @@ Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE 
 
 \subsection{Results}
 \label{sec:results}
+\input{results-adj-min.tex}
 
 \Cref{tab:results} lists the results for the Beatles-ISO and SALAMI-free.
-SMGA performs best on the majority of metrics for Beatles-ISO (\cref{tab:results}, top),\footnote{SMGA parameters were selected to 
+SMGA performs best on most metrics for Beatles-ISO (\cref{tab:results}, top),\footnote{SMGA parameters were tuned to 
 perform well on the Beatles data~\cite{serra2012unsupervised}.}
-The scores on the NCE metrics ($S_O, S_U, S_F$) are qualitatively comparable between SMGA and OLDA ($S_F$ of 0.829 and 0.813, respectively),
-suggesting that SMGA and the proposed methods are producing segmentations of comparable quality, but different levels of granularity.
-The unweighted, FDA, and OLDA models all achieve higher accuracy for boundary detection at 0.5s resolution.
+The NCE scores are qualitatively comparable between SMGA and OLDA ($S_F$ of 0.829 and 0.813, respectively),
+and the proposed methods achieve higher accuracy for boundary detection at 0.5s resolution.
 
-Results on the SALAMI-free data (\cref{tab:results}, bottom) are mixed, though the FDA and OLDA methods both show marked
-improvement over the unweighted method.  Overall, the OLDA model tends to achieve a better balance between precision and recall
-than FDA, and achieves maximal F-scores on all but 3s boundary detection. 
+On both datasets, OLDA consistently improves performance over the unweighted model across all metrics, achieving the highest scores on SALAMI-free.
+The results for FDA are mixed, and tend to degrade performance relative to the unweighted model.
+
+% Results on the SALAMI-free data (\cref{tab:results}, bottom) are mixed, though the FDA and OLDA methods both show marked
+% improvement over the unweighted method.  Overall, the OLDA model tends to achieve a better balance between precision and recall
+% than FDA, and achieves maximal F-scores on all but 3s boundary detection. 
 
 \section{Conclusion}
 \label{sec:conclusion}

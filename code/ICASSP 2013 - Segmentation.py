@@ -296,6 +296,7 @@ def make_rep_feature_plot(M):
     #Rfilt = Rfilt[Rfilt.sum(axis=1) > 0, :]
     
     Rlatent = compress_data(Rfilt, 8)
+    #Rlatent = compress_data(Rfilt, R.shape[0])
     
     figure(figsize=(6,6))
     subplot(221)
@@ -307,13 +308,13 @@ def make_rep_feature_plot(M):
     subplot(222)
     myimshow(Rskew), title('Skewed self-sim.')
     xlabel('Beat'), ylabel('Lag')
-    yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1], M.shape[1] + 1, Rskew.shape[0] / 6))
+    yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1]+1, M.shape[1], Rskew.shape[0] / 6))
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
     subplot(223)
     myimshow(Rfilt), title('Filtered self-sim.')
     xlabel('Beat'), ylabel('Lag')
-    yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1], M.shape[1] + 1, Rskew.shape[0] / 6))
+    yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1]+1, M.shape[1], Rskew.shape[0] / 6))
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
     subplot(224)
@@ -323,6 +324,7 @@ def make_rep_feature_plot(M):
     tight_layout()
     
     savefig('/home/bmcfee/git/olda/paper/figs/rep.pdf', format='pdf', pad_inches=0, transparent=True)
+    #savefig('/home/bmcfee/git/olda/paper/figs/rep.svg', format='svg', pad_inches=0, transparent=True, dpi=200)
 
 # <codecell>
 
@@ -330,7 +332,7 @@ M = get_beat_mfccs('/home/bmcfee/data/CAL500/mp3/2pac-trapped.mp3')
 
 # <codecell>
 
-make_rep_feature_plot(M[:,40:140])
+make_rep_feature_plot(M[:,40:137])
 
 # <codecell>
 
