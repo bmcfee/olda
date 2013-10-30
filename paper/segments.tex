@@ -50,8 +50,7 @@ The proposed method is applied to music segmentation, in which a song is partiti
 locally homogeneous segments (\eg, verse or chorus).  
 To facilitate abstraction over multiple training examples, we develop a latent structural repetition feature, which summarizes the
 repetitive structure of a song of any length in a fixed-dimensional representation.
-Experimental results on the SALAMI and Beatles corpora demonstrate that the proposed method efficiently integrates disparate
-features, and improves accuracy.
+Experimental results demonstrate that the proposed method efficiently integrates heterogeneous features, and improves segmentation accuracy.
 \end{abstract}
 %
 \begin{keywords}
@@ -66,14 +65,14 @@ Music, automatic segmentation, learning
 % what's the problem with usual approaches
 
 Automatic music segmentation algorithms take as input the acoustic signal of a musical performance, and produce a temporal
-partitioning of the performance into a small number of salient \emph{segments}.  Ideally, segments correspond to structurally
-meaningful regions of the performance, such \emph{intro}, \emph{chorus}, or \emph{guitar solo}.
+partitioning of the performance into a small number of \emph{segments}.  Ideally, segments correspond to structurally
+meaningful regions of the performance, such \emph{verse} or \emph{chorus}.
 
 Common approaches to music segmentation attempt to detect repeated patterns of features (\eg, a repeating chord progression),
 often by some form of clustering~\cite{levy2008structural} or novelty detection~\cite{serra2012unsupervised}.  Often, features
-are (manually) tuned and optimized for a specific development set, and carry implicit assumptions about the nature of musical 
-structure.  As a concrete example, features built to detect repeated chord progressions may work well for characterizing the 
-structure of Western pop music, but fail for other styles which, for example, may be structured around timbre rather than melody.
+are manually tuned and optimized for a specific development set, and carry implicit assumptions about the nature of musical 
+structure.  As a concrete example, features built to detect repeated chord progressions may work well for characterizing some 
+genres (\eg, rock or pop), but fail for other styles (\eg, jazz or hip-hop) which may be structured around timbre rather than melody.
 
 In this work, we propose a supervised learning algorithm to automatically adapt acoustic and structural features to the statistics
 of a training set. Given a collection of songs with structural annotations, the algorithm finds an optimal linear transformation
@@ -104,31 +103,35 @@ localized timbre, pitch, and timing information.
 \label{sec:features}
 The criteria for deciding what is or is not a segment may vary across genres or styles.  
 Pop music relies heavily on a verse/chorus structure, and is well characterized by repeating chord sequences. 
-On the other hand, jazz tends to be structured by changing instrumentation (\ie, the currently soloist),
-and is better modeled as sequences of homogenous timbre.
+On the other hand, jazz tends to be structured by changing instrumentation (\eg, the current soloist),
+and is better modeled as sequences of consistent timbre.
+In general, a structural segmentation algorithm should include multiple feature representations in order to function
+on various musical genres.
 
-We follow the strategy used by Serr\`{a} \etal, which reduces global structure (repetitions) to
-local features, and then segments by detecting changes in the resulting time-series. 
-When combined with the learning algorithm described in \Cref{sec:olda}, this framework can effectively integrate both 
-global and local information to simultaneously capture high-level structure and low-level consistency.
+As a first step toward integrating multiple features, we introduce a structural repetition feature
+which is amenable to learning and abstraction across multiple example songs.
 
 \subsection{Latent structural repetition}
 \Cref{fig:rep} outlines our approach for computing structural repetition features, which is adapted from
 Serr\`{a} \etal~\cite{serra2012unsupervised}.  First, we extract beat-synchronous features (\eg, MFCCs or chroma) 
 from the signal, and build a binary self-similarity matrix by linking each beat to its nearest neighbors in feature
 space (\cref{fig:rep}, top-left). With beat-synchronous features, repeated sections appear as diagonals in the self-similarity
-matrix. To easily detect repeated sections, the self-similarity matrix is skewed by shifting the $i$th column down by $i$ rows
-(\cref{fig:rep}, top-right), thus converting diagonals into horizontals.
+matrix. To detect repeated sections, the matrix is skewed by shifting the $i$th column down by $i$ rows
+(\cref{fig:rep}, top-right), thereby converting diagonals into horizontals.
 
-Using nearest-neighbor linkage to compute the self-similarity matrix results in spurious links and skipped connections. 
-Serr\`{a}~\etal{} resolve this by convolving with a Gaussian filter, which effectively suppresses noise, but also blurs
+Nearest-neighbor linkage can result spurious links and skipped connections. 
+Serr\`{a}~\etal{} resolve this by convolving with a Gaussian filter, which suppresses noise, but also blurs
 segment boundaries. Instead, we use a horizontal median filter, which (for odd window length) produces a binary matrix,
-suppresses links which do not belong to long sequences of repetitions, and fills in skipped conections (\cref{fig:rep},
-bottom-left). Because median filtering preserves edges, we may expect more precise boundary detection.
+suppresses links outside of repeated sequences, and fills in skipped connections (\cref{fig:rep},
+bottom-left).  The width of the median filter directly corresponds to the minimal duration (in beats) of detected repetitions,
+and is consequently easier to tune than a Gaussian filter.
+The median filter also preserves edges better than the Gaussian filter, so we may expect more precise detection of segment boundaries.
 
 Let $R \in \R^{2t \times t}$ denote the median-filtered, skewed self-similarity matrix over $t$ beats.  
-Note that different songs have different durations, so the dimensionality of $R$ varies. 
-This makes it difficult to directly model and generalize across collections.
+% Because different songs have different durations, the dimensionality of $R$ varies. 
+Because the dimensionality (number of rows) of $R$ varies from one track to the next,
+% This makes 
+it is difficult to model and generalize across collections.
 However, what matters for segmentation is not the representation of the columns of $R$, but the similarity between them.
 More precisely, methods which depend on distances between column-vectors --- \ie, those based on clustering or novelty curves --- 
 are invariant to unitary transformations $U\trans$:
@@ -136,18 +139,20 @@ $
 \|R_{\cdot, i} - R_{\cdot, j}\| = \|U\trans R_{\cdot, i} - U\trans R_{\cdot, j}\|.
 $ 
 
-Rather than use $R$ directly, we introduce \emph{latent structural repetition}, which compresses each
+% Rather than use $R$ directly, 
+We therefore introduce \emph{latent structural repetition}, which compresses each
 any song's $R$ matrix to a fixed-dimension representation.  Let $R = U\Sigma V\trans$ denote the singular value decomposition of $R$,
 with (descending) singular values $\sigma_i$. 
-The latent structural repetition feature (\cref{fig:rep}, bottom-right) is defined as the matrix $L$:
+The latent structural repetition feature is defined as the matrix $L$:
 \begin{equation}
 L \defeq \sigma_1^{-1} U\trans R = \sigma_1^{-1} \Sigma V\trans.\label{eq:latent-rep}
 \end{equation}
 
-Reducing $L$ to $d < 2t$ principal components (rows) retains the most important factors, and normalizing by $\sigma_1$ ensures that
-features maintain the same relative magnitude independent of track duration.  \Cref{fig:rep} (bottom-right) depicts an example of
-the resulting features.  In practice, small values of $d$ suffice to capture global structure: in the given
-example, internal segment position and segment boundaries are encoded within the top two components.
+Reducing $L$ to $d < 2t$ principal components retains the most important factors, and normalizing by $\sigma_1$ reduces 
+the influence of track duration. 
+\Cref{fig:rep} (bottom-right) depicts an example of the resulting features.  
+Small values of $d$ often suffice to capture global structure: in the given
+example, the top two components code for segment position and membership.
 
 \begin{figure}
 \centering%
@@ -166,7 +171,7 @@ Bottom-right: 8-dimensional latent factor representation (best viewed in color).
 Given a feature matrix $X \in \R^{D\times t}$, we produce a hierarchical clustering of the columns of $X$ by using the
 linkage-constrained variant of Ward's agglomerative clustering algorithm~\cite{ward1963hierarchical} as implemented in
 \texttt{scikit-learn}~\cite{pedregosa2011scikit}.  For each column $X_{\cdot,i}$, linkage constraints are generated
-for $(i-1, i)$ and $(i, i+1)$, so the linkage graph forms a chain.  Starting from $t$ clusters (one for each column of $X$), 
+for $(i-1, i)$ and $(i, i+1)$.  Starting from $t$ clusters (one for each column of $X$), 
 linked clusters are iteratively merged until only one remains.
 The hierarchy is computed in $\Oh(t)$ merge operations, and due to the constraints, 
 there are $\Oh(t)$ feasible merges at each step. 
@@ -176,11 +181,10 @@ For $D \in \Omega(\log t)$, the cost of clustering is dominated by the $\Omega(t
 \subsection{Choosing the number of segments}
 The hierarchical clustering produces segmentations for all numbers of segments $1 \leq k \leq t$.  
 Because music segmentation is itself an ambiguous task, the ability to simultaneously produce segmentations at all resolutions is a key advantage of the 
-proposed technique, and can be especially useful in interactive displays for data exploration.  
-However, standard evaluation procedures are defined only for flat segmentations, and require a specific pruning of the segment hierarchy into some $k$ 
-distinct segments.
+proposed technique.  
+However, standard evaluation procedures are defined only for flat segmentations, and require a specific pruning of the segment hierarchy.
 
-To select $k$, we compute the clustering cost of each pruning within a plausible bounded range 
+To select the number of segments $k$, we compute the clustering cost of each pruning within a plausible bounded range 
 $k_{\min} \leq k \leq k_{\max}$.  The bounds are determined by assuming average minimum and maximum segment duration 
 of 10s and 45s.  AIC correction~\cite{akaike1973information} is then applied to each candidate pruning (assuming a spherical 
 Gaussian model for each segment), and $k$ is chosen to minimize the AIC-corrected cost.
@@ -200,7 +204,9 @@ beat indices $(1, 2, \ldots, t)$, and normalized beat indices\\ $(1/t, 2/t, \ldo
 \end{description}
 Local timbre features can be useful for non-repetitive forms (\eg, jazz), while timbre repetition is useful for sample-based genres (\eg, hip-hop or electonic). 
 Similarly, chroma features capture local pitch similarity, while pitch repetitions capture chord progressions.
-The time features act as an implicit quadratic regularization on segment durations, and promote balanced segmentations.
+The time features act as an implicit quadratic regularization on segment durations, and promote balanced segmentations. 
+We include normalized and unnormalized time-stamps to allow the learning algorithm (\Cref{sec:olda}) to adapt the regularization to 
+either relative or absolute segment durations; beat index features differ from raw time features by correcting for tempo variation.
 
 All features can be stacked together into a single feature matrix $X \in \R^{D\times t}$, and clustered via the method described
 above. However, the relative magnitude and importance of each feature is not calibrated to produce optimal clusterings. 
@@ -317,16 +323,12 @@ perform well on the Beatles data~\cite{serra2012unsupervised}.}
 The NCE scores are qualitatively comparable between SMGA and OLDA ($S_F$ of 0.829 and 0.813, respectively),
 and the proposed methods achieve higher accuracy for boundary detection at 0.5s resolution.
 
-On both datasets, OLDA consistently improves performance over the unweighted model across all metrics, achieving the highest scores on SALAMI-free.
-The results for FDA are mixed, and tend to degrade performance relative to the unweighted model.
+On both datasets, OLDA consistently improves performance over the unweighted model across all metrics, and achieves the highest scores on three out of four metrics for SALAMI-free.
+The results for FDA are mixed, but performance tends to degrade from the unweighted model.
 
-% Results on the SALAMI-free data (\cref{tab:results}, bottom) are mixed, though the FDA and OLDA methods both show marked
-% improvement over the unweighted method.  Overall, the OLDA model tends to achieve a better balance between precision and recall
-% than FDA, and achieves maximal F-scores on all but 3s boundary detection. 
 
 \section{Conclusion}
 \label{sec:conclusion}
-
 
 \bibliographystyle{IEEEbib}
 \bibliography{refs}
