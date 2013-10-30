@@ -127,13 +127,16 @@ suppresses links which do not belong to long sequences of repetitions, and fills
 bottom-left). Because median filtering preserves edges, we may expect more precise boundary detection.
 
 Let $R \in \R^{2t \times t}$ denote the median-filtered, skewed self-similarity matrix over $t$ beats.  
-Note that different songs have different durations, so the dimensionality of $R$ varies for different songs. 
+Note that different songs have different durations, so the dimensionality of $R$ varies. 
 This makes it difficult to directly model and generalize across collections.
-However, note that methods which depend on distances between column-vectors ${\|R_{\cdot, i} - R_{\cdot, j}\|}$ --- 
-\eg, Euclidean clustering or novelty curve peak-picking --- are invariant to unitary transformations.
+However, what matters for segmentation is not the representation of the columns of $R$, but the similarity between them.
+More precisely, methods which depend on distances between column-vectors --- \ie, those based on clustering or novelty curves --- 
+are invariant to unitary transformations $U\trans$:
+$
+\|R_{\cdot, i} - R_{\cdot, j}\| = \|U\trans R_{\cdot, i} - U\trans R_{\cdot, j}\|.
+$ 
 
-What matters for segmentation is not the representation of the columns of $R$, but the similarity between them.
-Rather than use $R$ directly, we define \emph{latent structural repetition} features, which compress each
+Rather than use $R$ directly, we introduce \emph{latent structural repetition}, which compresses each
 any song's $R$ matrix to a fixed-dimension representation.  Let $R = U\Sigma V\trans$ denote the singular value decomposition of $R$,
 with (descending) singular values $\sigma_i$. 
 The latent structural repetition feature (\cref{fig:rep}, bottom-right) is defined as the matrix $L$:
@@ -183,16 +186,20 @@ of 10s and 45s.  AIC correction~\cite{akaike1973information} is then applied to 
 Gaussian model for each segment), and $k$ is chosen to minimize the AIC-corrected cost.
 
 \subsection{Multiple features}
-Structural repetition features are most commonly used to detect repeated chord sequences, but the idea is general enough to
-support any kind of feature descriptor.  We aggregate several types of feature descriptors for each beat:
-\begin{description}\addtolength{\itemsep}{-0.5\baselineskip}%
-\item[MFCC]   Beat-synchronous (mean) Mel-frequency cepstral coefficients and their latent repetitions;
-\item[Chroma] Beat-synchronous (median) chroma and their latent repetitions; and
-\item[Time]   Time-stamp (in seconds) of each beat, normalized time-stamps (as a fraction of track duration), 
+Structural repetition features are most commonly used to detect repeated chord sequences, which is appropriate for
+segmenting many genres of popular music.  However, the conventions of structure can vary from one genre to the next,
+so a general segmentation algorithm should include a variety of feature descriptors
+We therefore aggregate several types of feature descriptors for each beat:
+\begin{description}\addtolength{\itemsep}{-0.35\baselineskip}%
+\item[Timbre] mean Mel-frequency cepstral coefficients,
+\item[Pitch] (coordinate-wise) median chroma vectors,
+\item[Timbre repetition] latent MFCC repetitions,
+\item[Pitch repetition] latent chroma repetitions,
+\item[Time] Time-stamp (in seconds) of each beat, normalized time-stamps (as a fraction of track duration), 
 beat indices $(1, 2, \ldots, t)$, and normalized beat indices\\ $(1/t, 2/t, \ldots, 1)$.
 \end{description}
-The MFCC features capture local timbre, and repeated timbre sequences. 
-Similarly, chroma features capture local pitch similarity and sequential repetitions.
+Local timbre features can be useful for non-repetitive forms (\eg, jazz), while timbre repetition is useful for sample-based genres (\eg, hip-hop or electonic). 
+Similarly, chroma features capture local pitch similarity, while pitch repetitions capture chord progressions.
 The time features act as an implicit quadratic regularization on segment durations, and promote balanced segmentations.
 
 All features can be stacked together into a single feature matrix $X \in \R^{D\times t}$, and clustered via the method described
@@ -224,19 +231,19 @@ segment are assigned to class 1, the second segment to class 2, and so on.
 However, interpreting each segment as a distinct class could result in a repeated verse being treated as two distinct classes which 
 cannot be separated. 
 A more serious problem with this formulation is that it is unclear how to generalize across multiple songs, as it would result in
-FDA attempting to separate segments from different songs, which is somewhat meaningless for the single-song segmentation task.
+FDA attempting to separate segments from different songs.%, which is somewhat meaningless for the single-song segmentation task.
 
-Now, note that due to linkage constraints, the agglomerative clustering algorithm (\cref{sec:clustering}) only considers merge 
-operations over adjacent segments $(c, c+1)$. This motivates a relaxed FDA problem which only attempts to separate adjacent
+Due to linkage constraints, the agglomerative clustering algorithm (\cref{sec:clustering}) only considers merge 
+operations over successive segments $(c, c+1)$. This motivates a relaxed FDA formulation which only attempts to separate adjacent
 segments.  This is accomplished by replacing the between-class scatter matrix $A_B$ with the resulting \emph{ordinal scatter matrix}:
 \begin{align*}
 A_\text{O} &\defeq \sum_{c < C} n_c (\mu_c - \mu_{c+}) (\mu_c - \mu_{c+})\trans\\
 \mu_{c+} &\defeq \frac{n_c \mu_c + n_{c+1} \mu_{c+1} }{n_c + n_{c+1}}.
 \end{align*}
-Intuitively, $A_\text{O}$ measures the deviation of successive segments $(c, c+1)$ from their mutual centroid $\mu_{c+}$, \ie,
-the centroid resulting from merging $c$ and $c+1$.  This is exactly the type of merge operation encountered in the agglomerative
-clustering algorithm described in \Cref{sec:clustering}.  Optimizing $W$ to maximize this deviation, while minimizing within-segment variance,
-should enhance the overall segmentation accuracy.  While FDA has a similar objective, its relation to our specific clustering objective is more tenuous.
+Intuitively, $A_\text{O}$ measures the deviation of successive segments $(c, c+1)$ from their mutual centroid $\mu_{c+}$, 
+which is exactly the comparison performed for merge operations in the agglomerative clustering algorithm.
+Optimizing $W$ to maximize this deviation, while minimizing within-segment variance, should enhance the overall segmentation accuracy.  
+%While FDA has a similar objective, its relation to the linkage-constrained clustering objective is tenuous.
 
 Because $A_\text{W}$ may be singular, we include a smoothing parameter
 $\lambda > 0$.\footnote{The same regularization strategy is applied to FDA in \Cref{sec:eval}.} 

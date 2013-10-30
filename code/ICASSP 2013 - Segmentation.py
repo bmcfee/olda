@@ -384,3 +384,85 @@ xticks([0, 32, 44, 76, 108], ['MFCC', '$\uparrow$\nChroma', 'R-MFCC', 'R-Chroma'
 tight_layout()
 savefig('/home/bmcfee/git/olda/paper/figs/fda-vs-olda.pdf', format='pdf', pad_inches=0, transparent=True)
 
+# <markdowncell>
+
+# SVD stuff
+
+# <codecell>
+
+def rep_feature_svd(M):
+    
+    myimshow = functools.partial(imshow, aspect='auto', interpolation='none', origin='lower', cmap='gray_r')
+    
+    R = librosa.segment.recurrence_matrix(M, k=2*np.sqrt(1./M.shape[1]), sym=False).astype(np.float)
+    
+    Rskew = librosa.segment.structure_feature(R, pad=True)
+    Rskew = np.roll(Rskew, M.shape[1], axis=0)
+    
+    
+    Rfilt = scipy.signal.medfilt2d(Rskew, kernel_size=(1, 7))
+    #Rfilt = Rfilt[Rfilt.sum(axis=1) > 0, :]
+    
+    Rlatent = compress_data(Rfilt, 8)
+    #Rlatent = compress_data(Rfilt, R.shape[0])
+    
+    figure(figsize=(12,4))
+    subplot(131)
+    myimshow(R), title('Self-similarity')
+    xlabel('Beat'), ylabel('Beat')
+    xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
+    yticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
+    
+    subplot(132)
+    myimshow(Rskew), title('Skewed self-sim.')
+    xlabel('Beat'), ylabel('Lag')
+    yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1]+1, M.shape[1], Rskew.shape[0] / 6))
+    xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
+    
+    subplot(133)
+    myimshow(Rfilt), title('Filtered self-sim.')
+    xlabel('Beat'), ylabel('Lag')
+    yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1]+1, M.shape[1], Rskew.shape[0] / 6))
+    xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
+    tight_layout()
+    
+    # Do the SVD
+    U, sigma, Vh = scipy.linalg.svd(Rfilt)
+    
+    D_little = 32
+    
+    figure(figsize=(12,4))
+    subplot(131)
+    myimshow(U[:,:D_little], cmap='PRGn'), title('U')
+    xlabel('Factor'), ylabel('Lag')
+    #yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1]+1, M.shape[1], Rskew.shape[0] / 6))
+    #xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
+    
+    subplot(132)
+    plot(sigma / sigma[0]), axis('tight'), title('Normalized spectrum $\sigma/\sigma_1$')
+    vlines([D_little], 0, 1)
+    
+    subplot(133)
+    myimshow(Vh[:D_little], cmap='PRGn'), title('V\'')
+    xlabel('Beat'), ylabel('Factor')
+    #yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1]+1, M.shape[1], Rskew.shape[0] / 6))
+    #xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
+    tight_layout()
+    # Reconstruct
+    S_hat = np.zeros(U.shape[1])
+    S_hat[:D_little] = sigma[:D_little]
+    
+    R_reconst = U.dot(np.diag(S_hat))
+    R_reconst = R_reconst[:, :Vh.shape[0]].dot(Vh)
+    
+    figure(figsize=(12,6))
+    subplot(121)
+    myimshow(Rfilt), title('Original')
+    subplot(122)
+    myimshow(R_reconst), title('Reconstruction (d=%2d)' % D_little)
+    tight_layout()
+
+# <codecell>
+
+rep_feature_svd(M)#[:,40:137])
+
