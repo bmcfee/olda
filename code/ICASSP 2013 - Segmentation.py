@@ -361,28 +361,39 @@ savefig('/home/bmcfee/git/olda/paper/figs/w.pdf', format='pdf', pad_inches=0, tr
 
 # <codecell>
 
-model_fda_beatles = np.load('/home/bmcfee/git/olda/data/model_fda_beatles.npy')
-model_olda_beatles  = np.load('/home/bmcfee/git/olda/data/model_olda_beatles.npy')
-figure(figsize=(4,3))
-subplot(211)
-imshow(model_fda_beatles, aspect='auto', interpolation='none', cmap='PRGn_r')
-ylabel('FDA')
-yticks([])
-#ylabel("More important $\\rightarrow$")
-#xticks([0, 32, 44, 76, 108], ['MFCC', 'Chroma', 'Rep-M', 'Rep-C', 'Time'], rotation=-30, horizontalalignment='left')
-xticks([])
-#colorbar()
+model_fda_beatles = np.load('/home/bmcfee/git/olda/data/model_fda_beatles.npy')[:16]
+model_fda_salami = np.load('/home/bmcfee/git/olda/data/model_fda_salami.npy')[:16]
+model_olda_beatles  = np.load('/home/bmcfee/git/olda/data/model_olda_beatles.npy')[:16]
+model_olda_salami = np.load('/home/bmcfee/git/olda/data/model_olda_salami.npy')[:16]
 
-subplot(212)
-imshow(model_salami, aspect='auto', interpolation='none', cmap='PRGn_r')
-ylabel('OLDA')
-#colorbar(orientation='horizontal')
-#ylabel("More important $\\rightarrow$")
+figure(figsize=(10,5))
+subplot(221)
+imshow(model_fda_beatles, aspect='auto', interpolation='none', cmap='PRGn_r')
+ylabel('FDA - Beatles')
+yticks([])
+xticks([])
+
+subplot(222)
+imshow(model_fda_salami, aspect='auto', interpolation='none', cmap='PRGn_r')
+ylabel('FDA - Salami')
+yticks([])
+xticks([])
+
+subplot(223)
+imshow(model_olda_beatles, aspect='auto', interpolation='none', cmap='PRGn_r')
+ylabel('OLDA - Beatles')
 yticks([])
 xticks([0, 32, 44, 76, 108], ['MFCC', '$\uparrow$\nChroma', 'R-MFCC', 'R-Chroma', 'Time'], horizontalalignment='left')
 
+subplot(224)
+imshow(model_olda_salami, aspect='auto', interpolation='none', cmap='PRGn_r')
+ylabel('OLDA - Salami')
+yticks([])
+xticks([])
+xticks([0, 32, 44, 76, 108], ['MFCC', '$\uparrow$\nChroma', 'R-MFCC', 'R-Chroma', 'Time'], horizontalalignment='left')
+
 tight_layout()
-savefig('/home/bmcfee/git/olda/paper/figs/fda-vs-olda.pdf', format='pdf', pad_inches=0, transparent=True)
+#savefig('/home/bmcfee/git/olda/paper/figs/fda-vs-olda.pdf', format='pdf', pad_inches=0, transparent=True)
 
 # <markdowncell>
 

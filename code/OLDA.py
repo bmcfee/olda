@@ -99,9 +99,11 @@ class OLDA(BaseEstimator, TransformerMixin):
                 
                 if prev_mean is not None:
                     diff_ord = seg_mean - (prev_length * prev_mean + seg_length * seg_mean) / (prev_length + seg_length)
-                    
                     self.scatter_ordinal_ = self.scatter_ordinal_ + seg_length * np.dot(diff_ord, diff_ord.T)
                     
+                    diff_ord = prev_mean - (prev_length * prev_mean + seg_length * seg_mean) / (prev_length + seg_length)
+                    self.scatter_ordinal_ = self.scatter_ordinal_ + prev_length * np.dot(diff_ord, diff_ord.T)
+
                 prev_mean = seg_mean
                 prev_length = seg_length
         
