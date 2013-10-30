@@ -461,6 +461,14 @@ def rep_feature_svd(M):
     subplot(122)
     myimshow(R_reconst), title('Reconstruction (d=%2d)' % D_little)
     tight_layout()
+    
+    figure(figsize=(16,32))
+    
+    for i in range(D_little):
+        subplot(1+np.ceil(np.sqrt(D_little)), np.floor(np.sqrt(D_little)), i+1)
+        myimshow(np.outer(U[:,i], Vh[i])), title('$U_{%d} V^\mathsf{T}_{%d}$' % (i, i))
+    
+    tight_layout()
 
 # <codecell>
 

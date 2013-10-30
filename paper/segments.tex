@@ -251,7 +251,7 @@ which is exactly the comparison performed for merge operations in the agglomerat
 Optimizing $W$ to maximize this deviation, while minimizing within-segment variance, should enhance the overall segmentation accuracy.  
 %While FDA has a similar objective, its relation to the linkage-constrained clustering objective is tenuous.
 
-Because $A_\text{W}$ may be singular, we include a smoothing parameter
+To improve numerical stability when $A_\text{W}$ is singular, we include a smoothing parameter
 $\lambda > 0$.\footnote{The same regularization strategy is applied to FDA in \Cref{sec:eval}.} 
 The OLDA optimization takes the form:
 \begin{equation}
@@ -307,9 +307,9 @@ We report the following standard segmentation metrics:
 % belong to the same segment.
 \item[Frame clustering] F-measure ($F_C$) of detecting whether any two frames belong to the same segment.
 \end{description}
-Note that boundary retrieval and frame clustering metrics are sensitive to changes in the number of
-predicted segments, upon which multiple human annotators often disagree for the same track. 
-The NCE metrics are designed to be robust to changes in segmentation granularity.
+Note that boundary retrieval and frame clustering metrics are sensitive to the number of
+predicted segments, upon which multiple human annotators often disagree.
+NCE is designed to be robust to changes in segmentation granularity.
 Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE and frame clustering metrics. 
 
 
@@ -318,17 +318,23 @@ Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE 
 \input{results-adj-min.tex}
 
 \Cref{tab:results} lists the results for the Beatles-ISO and SALAMI-free.
-SMGA performs best on most metrics for Beatles-ISO (\cref{tab:results}, top),\footnote{SMGA parameters were tuned to 
-perform well on the Beatles data~\cite{serra2012unsupervised}.}
-The NCE scores are qualitatively comparable between SMGA and OLDA ($S_F$ of 0.829 and 0.813, respectively),
-and the proposed methods achieve higher accuracy for boundary detection at 0.5s resolution.
+SMGA performs best\footnote{SMGA parameters were tuned to perform well on the Beatles data~\cite{serra2012unsupervised}.}
+on most metrics for Beatles-ISO.\@
+The NCE scores are qualitatively comparable between SMGA and OLDA ($S_F$ of 0.829 and 0.813, respectively).
+The proposed methods achieve higher accuracy for boundary detection at 0.5s resolution, which can be attributed to the increased
+precision afforded by the median-filtered repetition features.
 
 On both datasets, OLDA consistently improves performance over the unweighted model across all metrics, and achieves the highest scores on three out of four metrics for SALAMI-free.
-The results for FDA are mixed, but performance tends to degrade from the unweighted model.
-
+The results for FDA are mixed, but performance tends to degrade from the unweighted model.  By ignoring irrelevant segment comparisons, the OLDA model is better able to generalize from
+the training set than FDA.\@
 
 \section{Conclusion}
 \label{sec:conclusion}
+This paper introduced the ordinal linear discriminant analysis (OLDA) method for learning feature projections to improve time-series clustering.
+The proposed latent structural repetition features provide a convenient, fixed-dimensional representation of global song structure, which 
+facilitates modeling across multiple songs.
+The effective combination of global structural cues with local features results in significant improvement in segmentation accuracy 
+on the mixed-genre SALAMI-free dataset.
 
 \bibliographystyle{IEEEbib}
 \bibliography{refs}
