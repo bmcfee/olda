@@ -244,6 +244,7 @@ operations over successive segments $(c, c+1)$. This motivates a relaxed FDA for
 segments.  This is accomplished by replacing the between-class scatter matrix $A_B$ with the resulting \emph{ordinal scatter matrix}:
 \begin{align*}
 A_\text{O} &\defeq \sum_{c < C} n_c (\mu_c - \mu_{c+}) (\mu_c - \mu_{c+})\trans\\
+            &\phantom{\defeq \sum_{c < C}} + n_{c+1} (\mu_{c+1} - \mu_{c+}) (\mu_{c+1} - \mu_{c+})\trans\\
 \mu_{c+} &\defeq \frac{n_c \mu_c + n_{c+1} \mu_{c+1} }{n_c + n_{c+1}}.
 \end{align*}
 Intuitively, $A_\text{O}$ measures the deviation of successive segments $(c, c+1)$ from their mutual centroid $\mu_{c+}$, 
@@ -320,7 +321,7 @@ Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE 
 \Cref{tab:results} lists the results for the Beatles-ISO and SALAMI-free.
 SMGA performs best\footnote{SMGA parameters were tuned to perform well on the Beatles data~\cite{serra2012unsupervised}.}
 on most metrics for Beatles-ISO.\@
-The NCE scores are qualitatively comparable between SMGA and OLDA ($S_F$ of 0.829 and 0.813, respectively).
+The NCE scores are qualitatively comparable between SMGA and OLDA ($S_F$ of 0.829 and 0.812, respectively).
 The proposed methods achieve higher accuracy for boundary detection at 0.5s resolution, which can be attributed to the increased
 precision afforded by the median-filtered repetition features.
 
