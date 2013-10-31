@@ -27,7 +27,8 @@ def process_arguments():
                             '--num-jobs',
                             dest    =   'num_jobs',
                             action  =   'store',
-                            type    =   'int',
+                            type    =   int,
+                            required=   False,
                             default =   '4',
                             help    =   'Number of parallel jobs')
 
