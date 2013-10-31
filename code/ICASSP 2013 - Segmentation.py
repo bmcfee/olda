@@ -182,7 +182,7 @@ pprint(perfs_beatles)
 
 # <codecell>
 
-save_results('/home/bmcfee/git/olda/data/beatles_scores_adjusted.csv', perfs_beatles)
+save_results('/home/bmcfee/git/olda/data/beatles_scores_adjusted_2.csv', perfs_beatles)
 
 # <codecell>
 
@@ -208,7 +208,7 @@ pprint(perfs_salami)
 
 # <codecell>
 
-save_results('/home/bmcfee/git/olda/data/salami_scores_adjusted.csv', perfs_salami)
+save_results('/home/bmcfee/git/olda/data/salami_scores_adjusted_2.csv', perfs_salami)
 
 # <codecell>
 
@@ -361,10 +361,10 @@ savefig('/home/bmcfee/git/olda/paper/figs/w.pdf', format='pdf', pad_inches=0, tr
 
 # <codecell>
 
-model_fda_beatles = np.load('/home/bmcfee/git/olda/data/model_fda_beatles.npy')[:16]
-model_fda_salami = np.load('/home/bmcfee/git/olda/data/model_fda_salami.npy')[:16]
-model_olda_beatles  = np.load('/home/bmcfee/git/olda/data/model_olda_beatles.npy')[:16]
-model_olda_salami = np.load('/home/bmcfee/git/olda/data/model_olda_salami.npy')[:16]
+model_fda_beatles = np.load('/home/bmcfee/git/olda/data/model_fda2_beatles.npy')
+model_fda_salami = np.load('/home/bmcfee/git/olda/data/model_fda_salami.npy')
+model_olda_beatles  = np.load('/home/bmcfee/git/olda/data/model_olda2_beatles.npy')
+model_olda_salami = np.load('/home/bmcfee/git/olda/data/model_olda_salami.npy')
 
 figure(figsize=(10,5))
 subplot(221)

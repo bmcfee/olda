@@ -7,6 +7,8 @@ import numpy as np
 import mir_eval
 import cPickle as pickle
 
+from joblib import Parallel, delayed
+
 import OLDA
 import segmenter
 
@@ -20,6 +22,14 @@ def process_arguments():
     parser.add_argument(    'output_file',
                             action  =   'store',
                             help    =   'path to save model file')
+
+    parser.add_argument(    '-j',
+                            '--num-jobs',
+                            dest    =   'num_jobs',
+                            action  =   'store',
+                            type    =   'int',
+                            default =   '4',
+                            help    =   'Number of parallel jobs')
 
     return vars(parser.parse_args(sys.argv[1:]))
 
@@ -45,7 +55,8 @@ def score_model(model, x, b, t):
         xt = x
 
     # Then, run the segmenter
-    boundary_beats = segmenter.get_segments(xt)
+    kmin, kmax = segmenter.get_num_segs(b[-1])
+    boundary_beats = segmenter.get_segments(xt, kmin=kmin, kmax=kmax)
 
     boundary_times = mir_eval.util.adjust_segment_boundaries(b[boundary_beats], 
                                                              t_min=0.0,
@@ -55,7 +66,7 @@ def score_model(model, x, b, t):
 
     return score
 
-def fit_model(X, Y, B, T):
+def fit_model(X, Y, B, T, n_jobs):
 
     SIGMA = 10**np.arange(0, 8)
 
@@ -67,7 +78,7 @@ def fit_model(X, Y, B, T):
         O = OLDA.OLDA(sigma=sig)
         O.fit(X, Y)
 
-        scores = [score_model(O.components_, *z) for z in zip(X, B, T)]
+        scores = Parallel(n_jobs=n_jobs)( delayed(score_model)(O.components_, *z) for z in zip(X, B, T))
 
         mean_score = np.mean(scores)
         print 'Sigma=%.2e, score=%.3f' % (sig, mean_score)
@@ -85,6 +96,6 @@ if __name__ == '__main__':
 
     X, Y, B, T, F = load_data(parameters['input_file'])
 
-    model = fit_model(X, Y, B, T)
+    model = fit_model(X, Y, B, T, parameters['num_jobs'])
 
     np.save(parameters['output_file'], model)
