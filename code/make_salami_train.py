@@ -27,7 +27,7 @@ def align_segmentation(filename, beat_times):
             true segment times
     '''
     
-    segment_times = mir_eval.util.import_segment_boundaries(filename)
+    segment_times = mir_eval.util.import_segment_boundaries(filename, cols=[0])
 
     segment_beats = []
     for t in segment_times:

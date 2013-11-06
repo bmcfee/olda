@@ -169,7 +169,7 @@ def get_worst_examples(SETNAME, perfs, algorithm, idx, k=10):
 # <codecell>
 
 for alg in sorted(ind_perfs_beatles.keys()):
-    get_worst_examples('BEATLES', ind_perfs_beatles, alg, 5, 10)
+    get_worst_examples('BEATLES', ind_perfs_beatles, alg, 10, 10)
     print
 
 # <codecell>
@@ -182,7 +182,7 @@ pprint(perfs_beatles)
 
 # <codecell>
 
-save_results('/home/bmcfee/git/olda/data/beatles_scores_adjusted_3.csv', perfs_beatles)
+save_results('/home/bmcfee/git/olda/data/beatles_scores_fixed.csv', perfs_beatles)
 
 # <codecell>
 
@@ -200,6 +200,12 @@ plot_boxes(ind_perfs_beatles)
 
 # <codecell>
 
+perfs_salami = ind_perfs_salami
+for alg in perfs_salami:
+    perfs_salami[alg] = np.mean(perfs_salami[alg], axis=0)
+
+# <codecell>
+
 perfs_salami = evaluate_set('SALAMI', agg=True)
 
 # <codecell>
@@ -208,7 +214,7 @@ pprint(perfs_salami)
 
 # <codecell>
 
-save_results('/home/bmcfee/git/olda/data/salami_scores_adjusted_3.csv', perfs_salami)
+save_results('/home/bmcfee/git/olda/data/salami_scores_fixed.csv', perfs_salami)
 
 # <codecell>
 
@@ -336,12 +342,12 @@ make_rep_feature_plot(M[:,40:137])
 
 # <codecell>
 
-model_beatles = np.load('/home/bmcfee/git/olda/data/model_olda_beatles.npy')
-model_salami  = np.load('/home/bmcfee/git/olda/data/model_olda_salami.npy')
-figure(figsize=(4,3.5))
+model_fda = np.load('/home/bmcfee/git/olda/data/model_fda_beatles.npy')
+model_olda  = np.load('/home/bmcfee/git/olda/data/model_olda_beatles.npy')
+figure(figsize=(8,8))
 subplot(211)
-imshow(model_beatles, aspect='auto', interpolation='none', cmap='PRGn_r')
-ylabel('Beatles-ISO')
+imshow(model_fda, aspect='auto', interpolation='none', cmap='PRGn_r')
+ylabel('Beatles: FDA')
 yticks([])
 #ylabel("More important $\\rightarrow$")
 #xticks([0, 32, 44, 76, 108], ['MFCC', 'Chroma', 'Rep-M', 'Rep-C', 'Time'], rotation=-30, horizontalalignment='left')
@@ -349,22 +355,22 @@ xticks([])
 #colorbar()
 
 subplot(212)
-imshow(model_salami, aspect='auto', interpolation='none', cmap='PRGn_r')
-ylabel('SALAMI-free')
+imshow(model_olda, aspect='auto', interpolation='none', cmap='PRGn_r')
+ylabel('Beatles: OLDA')
 #colorbar(orientation='horizontal')
 #ylabel("More important $\\rightarrow$")
 yticks([])
 xticks([0, 32, 44, 76, 108], ['MFCC', '$\uparrow$\nChroma', 'R-MFCC', 'R-Chroma', 'Time'], horizontalalignment='left')
 
 tight_layout()
-savefig('/home/bmcfee/git/olda/paper/figs/w.pdf', format='pdf', pad_inches=0, transparent=True)
+#savefig('/home/bmcfee/git/olda/paper/figs/w.pdf', format='pdf', pad_inches=0, transparent=True)
 
 # <codecell>
 
-model_fda_beatles = np.load('/home/bmcfee/git/olda/data/model_fda3_beatles.npy')
-model_fda_salami = np.load('/home/bmcfee/git/olda/data/model_fda3_salami.npy')
-model_olda_beatles  = np.load('/home/bmcfee/git/olda/data/model_olda3_beatles.npy')
-model_olda_salami = np.load('/home/bmcfee/git/olda/data/model_olda3_salami.npy')
+model_fda_beatles = np.load('/home/bmcfee/git/olda/data/model_fda_beatles.npy')
+model_fda_salami = np.load('/home/bmcfee/git/olda/data/model_fda_salami.npy')
+model_olda_beatles  = np.load('/home/bmcfee/git/olda/data/model_olda_beatles.npy')
+model_olda_salami = np.load('/home/bmcfee/git/olda/data/model_olda_salami.npy')
 
 figure(figsize=(14,8))
 subplot(221)
