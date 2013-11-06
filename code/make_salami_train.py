@@ -75,9 +75,10 @@ def import_data(song, rootpath, output_path):
 
 # <codecell>
 
-def make_dataset(n=None, n_jobs=16, rootpath='SALAMI/', output_path='data/'):
+def make_dataset(n=None, n_jobs=12, rootpath='SALAMI/', output_path='data/'):
     
-    EXTS = ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac']
+#    EXTS = ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac']
+    EXTS = ['wav']
     files = []
     for e in EXTS:
         files.extend(filter(lambda x: os.path.exists(get_annotation(x, rootpath)), glob.iglob('%s/audio/*.%s' % (rootpath, e))))
