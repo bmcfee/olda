@@ -63,9 +63,7 @@ def features(filename):
 
     # Onset strength function for beat tracking
     def onset(S):
-        odf = np.diff(S, axis=1)
-        odf = np.maximum(S, 0)
-        odf = np.median(S, axis=0)
+        odf = np.median(np.maximum(0.0, np.diff(S, axis=1)), axis=0)
         
         odf = odf - odf.min()
         odf = odf / odf.max()
