@@ -95,6 +95,13 @@ def features(filename):
         
         return e_vecs.T.dot(X)
 
+    # Chroma features
+    def chroma(y):
+        D = np.abs(librosa.stft(y, n_fft=N_FFT, hop_length=HOP)).astype(np.float32)
+        D = librosa.decompose.hpss(D, win_P=19, win_H=19, p=1.0)[0]
+
+        C = librosa.feature.chromagram(S=D, sr=SR, n_chroma=N_CHROMA)
+        return C
 
     # Latent factor repetition features
     def repetition(X):
@@ -148,10 +155,8 @@ def features(filename):
     M = librosa.feature.sync(M, beats, aggregate=np.mean)
     
     # Get the chroma from the harmonic component
-    D = np.abs(librosa.stft(y, n_fft=N_FFT, hop_length=HOP)).astype(np.float32)
-    D = librosa.hpss.hpss_median(D, win_P=19, win_H=19, p=1.0)[0]
+    C = chroma(y)
 
-    C = librosa.feature.chromagram(D, sr=SR, n_chroma=N_CHROMA)
     # Beat-synchronize the features
     C = librosa.feature.sync(C, beats, aggregate=np.median)
     

@@ -101,6 +101,6 @@ if __name__ == '__main__':
 
     # Output lab file
     print '\tsaving output to ', parameters['output_file']
-    librosa.output.segment_csv(parameters['output_file'], beats, sr=SR, hop_length=HOP)
+    librosa.output.frames_csv(parameters['output_file'], beats, sr=SR, hop_length=HOP)
 
     pass
