@@ -27,7 +27,7 @@ def align_segmentation(filename, beat_times):
             true segment times
     '''
     
-    segment_times = mir_eval.util.import_segment_boundaries(filename)
+    segment_times = mir_eval.util.import_segment_boundaries(filename, cols=[0])
 
     segment_beats = []
     for t in segment_times:
@@ -75,7 +75,7 @@ def import_data(song, rootpath, output_path):
 
 # <codecell>
 
-def make_dataset(n=None, n_jobs=12, rootpath='SALAMI/', output_path='data/'):
+def make_dataset(n=None, n_jobs=16, rootpath='SALAMI/', output_path='data/'):
     
 #    EXTS = ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac']
     EXTS = ['wav']
