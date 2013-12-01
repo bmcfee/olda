@@ -93,7 +93,7 @@ class RFDA(BaseEstimator, TransformerMixin):
                 seg_mean = np.mean(xi[:, seg_start:seg_end], axis=1, keepdims=True)
                 
                 mu_diff = seg_mean - global_mean
-                self.scatter_restricted_ = self.scatter_restricted_ + seg_length * np.dot(mu_diff.T, mu_diff)
+                self.scatter_restricted_ = self.scatter_restricted_ + seg_length * np.dot(mu_diff, mu_diff.T)
 
                 if seg_length > 1:
                     seg_cov  = np.cov(xi[:, seg_start:seg_end])
