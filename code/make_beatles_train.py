@@ -37,6 +37,9 @@ def align_segmentation(filename, beat_times):
     # These labels have both begin and end times
     segment_times = mir_eval.util.import_segment_boundaries(filename)
 
+    # TODO:   2013-12-02 09:36:49 by Brian McFee <brm2132@columbia.edu>
+    # put segment label import here
+
     segment_beats = []
     for t in segment_times:
         # Find the closest beat
@@ -59,11 +62,12 @@ def import_data(audio, label, rootpath, output_path):
                 Y, T     = align_segmentation(label, B)
                 Y        = list(np.unique(Y))
                 
-                Data = {'features': X, 
-                        'beats': B, 
-                        'filename': audio, 
-                        'segment_times': T,
-                        'segments': Y}
+                Data = {'features':         X, 
+                        'beats':            B, 
+                        'filename':         audio, 
+                        'segment_times':    T,
+                        'segments':         Y}
+
                 print audio, 'processed!'
         
                 with open(data_file, 'w') as f:

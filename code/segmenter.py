@@ -33,6 +33,10 @@ N_MFCC      = 32
 N_CHROMA    = 12
 N_REP       = 32
 
+NOTE_MIN    = librosa.octs_to_hz(1) # 55 Hz
+NOTE_MAX    = librosa.octs_to_hz(7) # 3520 Hz
+NOTE_RES    = 2                     # CQT filter resolution
+
 # mfcc, chroma, repetitions for each, and 4 time features
 __DIMENSION = N_MFCC + N_CHROMA + 2 * N_REP + 4
 
@@ -95,19 +99,35 @@ def features(filename):
         
         return e_vecs.T.dot(X)
 
+    # Harmonic waveform
+    def harmonify(y):
+        D = librosa.stft(y, n_fft=N_FFT, hop_length=HOP)
+        return librosa.istft(librosa.decompose.hpss(D)[0], hop_length=HOP)
+
     # Chroma features
-    def chroma(y):
+    def chroma_old(y):
         D = np.abs(librosa.stft(y, n_fft=N_FFT, hop_length=HOP)).astype(np.float32)
         D = librosa.decompose.hpss(D, win_P=19, win_H=19, p=1.0)[0]
 
         C = librosa.feature.chromagram(S=D, sr=SR, n_chroma=N_CHROMA)
         return C
 
+    def chroma(y):
+        # Build the wrapper
+        CQT      = librosa.cqt(harmonify(y), sr=SR, resolution=NOTE_RES, hop_length=HOP, fmin=NOTE_MIN, fmax=NOTE_MAX)
+
+        # Normalize, convert to energy
+        CQT      = (CQT / CQT.max())**(0.5)
+        
+        C_to_Chr = librosa.filters.cq_to_chroma(CQT.shape[0], n_chroma=N_CHROMA) 
+        return C_to_Chr.dot(CQT).astype(np.float32)
+
     # Latent factor repetition features
-    def repetition(X):
+    def repetition(X, metric='seuclidean'):
         R = librosa.segment.recurrence_matrix(X, 
                                             k=2 * int(np.ceil(np.sqrt(X.shape[1]))), 
                                             width=REP_WIDTH, 
+                                            metric=metric,
                                             sym=False).astype(np.float32)
 
         P = scipy.signal.medfilt2d(librosa.segment.structure_feature(R), [1, REP_FILTER])
@@ -119,7 +139,7 @@ def features(filename):
         return compress_data(P, N_REP)
 
 
-    print '\t[1/4] loading audio'
+    print '\t[1/5] loading audio'
     # Load the waveform
     y, sr = librosa.load(filename, sr=SR)
 
@@ -138,7 +158,7 @@ def features(filename):
     # Put on a log scale
     S = librosa.logamplitude(S)
     
-    print '\t[2/4] detecting beats'
+    print '\t[2/5] detecting beats'
     # Get the beats
     bpm, beats = librosa.beat.beat_track(onsets=onset(S), 
                                             sr=SR, 
@@ -148,12 +168,13 @@ def features(filename):
     # augment the beat boundaries with the starting point
     beats = np.unique(np.concatenate([ [0], beats]))
 
-    print '\t[3/4] generating MFCC and chroma'
+    print '\t[3/5] generating MFCC'
     # Get the MFCCs
-    M = librosa.feature.mfcc(S, d=N_MFCC)
+    M = librosa.feature.mfcc(S, n_mfcc=N_MFCC)
     # Beat-synchronize the features
     M = librosa.feature.sync(M, beats, aggregate=np.mean)
     
+    print '\t[4/5] generating chroma'
     # Get the chroma from the harmonic component
     C = chroma(y)
 
@@ -166,9 +187,9 @@ def features(filename):
     N = np.arange(float(len(beats)))
     
     # Beat-synchronous repetition features
-    print '\t[4/4] generating structure features'
-    R_timbre = repetition(M)
-    R_chroma = repetition(librosa.segment.stack_memory(C))
+    print '\t[5/5] generating structure features'
+    R_timbre = repetition(M, metric='seuclidean')
+    R_chroma = repetition(librosa.segment.stack_memory(C), metric='cosine')
     
     # Stack it all up
     X = np.vstack([M, C, R_timbre, R_chroma, B, B / duration, N, N / len(beats)])

@@ -182,11 +182,17 @@ pprint(perfs_beatles)
 
 # <codecell>
 
-save_results('/home/bmcfee/git/olda/data/beatles_scores_fixed.csv', perfs_beatles)
+save_results('/home/bmcfee/git/olda/data/beatles_scores_fixed_rfda.csv', perfs_beatles)
 
 # <codecell>
 
 ind_perfs_beatles = evaluate_set('BEATLES', agg=False)
+
+# <codecell>
+
+perfs_beatles = {}
+for alg in perfs_beatles:
+    perfs_beatles[alg] = np.mean(perfs_beatles[alg], axis=0)
 
 # <codecell>
 
@@ -200,21 +206,7 @@ plot_boxes(ind_perfs_beatles)
 
 # <codecell>
 
-perfs_salami = ind_perfs_salami
-for alg in perfs_salami:
-    perfs_salami[alg] = np.mean(perfs_salami[alg], axis=0)
-
-# <codecell>
-
 perfs_salami = evaluate_set('SALAMI', agg=True)
-
-# <codecell>
-
-pprint(perfs_salami)
-
-# <codecell>
-
-save_results('/home/bmcfee/git/olda/data/salami_scores_fixed.csv', perfs_salami)
 
 # <codecell>
 
@@ -222,8 +214,22 @@ ind_perfs_salami = evaluate_set('SALAMI', agg=False)
 
 # <codecell>
 
-for alg in sorted(ind_perfs_beatles.keys()):
-    get_worst_examples('SALAMI', ind_perfs_salami, alg, 10, 5)
+perfs_salami = {}
+for alg in perfs_salami:
+    perfs_salami[alg] = np.mean(perfs_salami[alg], axis=0)
+
+# <codecell>
+
+pprint(perfs_salami)
+
+# <codecell>
+
+save_results('/home/bmcfee/git/olda/data/salami_scores_fixed_rfda.csv', perfs_salami)
+
+# <codecell>
+
+for alg in sorted(ind_perfs_salami.keys()):
+    get_worst_examples('SALAMI', ind_perfs_salami, alg, 8, 5)
     print
 
 # <codecell>
