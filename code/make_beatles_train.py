@@ -51,7 +51,7 @@ def align_segmentation(filename, beat_times):
 # <codecell>
 
 def import_data(audio, label, rootpath, output_path):
-        data_file = '%s/features/beatles/%s.pickle' % (output_path, os.path.splitext(os.path.basename(audio))[0])
+        data_file = '%s/features/BEATLES/%s.pickle' % (output_path, os.path.splitext(os.path.basename(audio))[0])
 
         if os.path.exists(data_file):
             with open(data_file, 'r') as f:

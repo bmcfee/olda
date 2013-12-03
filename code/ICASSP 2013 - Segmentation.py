@@ -41,7 +41,7 @@ def evaluate_set(SETNAME, agg=True):
         
         # Scrub the predictions to valid ranges
         for i in range(len(predictions)):
-            predictions[i] = mir_eval.util.adjust_segments(predictions[i], t_max=truth[i][-1])
+            predictions[i] = mir_eval.util.adjust_boundaries(predictions[i], t_max=truth[i][-1])[0]
             
         # Compute metrics
         my_scores = []
