@@ -32,20 +32,21 @@ def align_segmentation(filename, beat_times):
 
         segment_times -- array
             true segment times
+
+        segment_labels -- array
+            list of segment labels
+
     '''
     
     # These labels have both begin and end times
-    segment_times = mir_eval.util.import_segment_boundaries(filename)
-
-    # TODO:   2013-12-02 09:36:49 by Brian McFee <brm2132@columbia.edu>
-    # put segment label import here
+    segment_times, segment_labels = mir_eval.util.import_segments(filename)
 
     segment_beats = []
     for t in segment_times:
         # Find the closest beat
         segment_beats.append( np.argmin((beat_times - t)**2))
         
-    return segment_beats, segment_times
+    return segment_beats, segment_times, segment_labels
 
 # <codecell>
 
@@ -59,13 +60,13 @@ def import_data(audio, label, rootpath, output_path):
         else:
             try:
                 X, B     = features(audio)
-                Y, T     = align_segmentation(label, B)
-                Y        = list(np.unique(Y))
+                Y, T, L  = align_segmentation(label, B)
                 
                 Data = {'features':         X, 
                         'beats':            B, 
                         'filename':         audio, 
                         'segment_times':    T,
+                        'segment_labels':   L,
                         'segments':         Y}
 
                 print audio, 'processed!'
@@ -92,7 +93,7 @@ def make_dataset(n=None, n_jobs=16, rootpath='beatles/', output_path='data/'):
 
     data = Parallel(n_jobs=n_jobs)(delayed(import_data)(audio, label, rootpath, output_path) for (audio, label) in zip(F_audio[:n], F_labels[:n]))
     
-    X, Y, B, T, F = [], [], [], [], []
+    X, Y, B, T, F, L = [], [], [], [], [], []
     for d in data:
         if d is None:
             continue
@@ -101,13 +102,14 @@ def make_dataset(n=None, n_jobs=16, rootpath='beatles/', output_path='data/'):
         B.append(d['beats'])
         T.append(d['segment_times'])
         F.append(d['filename'])
+        L.append(d['segment_labels'])
     
-    return X, Y, B, T, F
+    return X, Y, B, T, F, L
 
 
 if __name__ == '__main__':
     beatles_path = sys.argv[1]
     output_path = sys.argv[2]
-    X, Y, B, T, F = make_dataset(rootpath=beatles_path, output_path=output_path)
+    X, Y, B, T, F, L = make_dataset(rootpath=beatles_path, output_path=output_path)
     with open('%s/beatles_data.pickle' % output_path, 'w') as f:
-        pickle.dump( (X, Y, B, T, F), f)
+        pickle.dump( (X, Y, B, T, F, L), f)

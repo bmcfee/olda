@@ -25,16 +25,19 @@ def align_segmentation(filename, beat_times):
 
         segment_times -- array
             true segment times
+
+        segment_labels -- array
+            list of segment labels
     '''
     
-    segment_times = mir_eval.util.import_segment_boundaries(filename, cols=[0])
+    segment_times, segment_labels = mir_eval.util.import_segments(filename)
 
     segment_beats = []
     for t in segment_times:
         # Find the closest beat
         segment_beats.append( np.argmin((beat_times - t)**2))
         
-    return segment_beats, segment_times
+    return segment_beats, segment_times, segment_labels
 
 # <codecell>
 
@@ -54,13 +57,13 @@ def import_data(song, rootpath, output_path):
         else:
             try:
                 X, B     = features(song)
-                Y, T     = align_segmentation(get_annotation(song, rootpath), B)
-                Y        = list(np.unique(Y))
+                Y, T, L  = align_segmentation(get_annotation(song, rootpath), B)
                 
                 Data = {'features': X, 
                         'beats': B, 
                         'filename': song, 
                         'segment_times': T,
+                        'segment_labels': L,
                         'segments': Y}
                 print song, 'processed!'
         
@@ -88,7 +91,7 @@ def make_dataset(n=None, n_jobs=16, rootpath='SALAMI/', output_path='data/'):
 
     data = Parallel(n_jobs=n_jobs)(delayed(import_data)(song, rootpath, output_path) for song in files[:n])
     
-    X, Y, B, T, F = [], [], [], [], []
+    X, Y, B, T, F, L = [], [], [], [], [], []
     for d in data:
         if d is None:
             continue
@@ -97,13 +100,14 @@ def make_dataset(n=None, n_jobs=16, rootpath='SALAMI/', output_path='data/'):
         B.append(d['beats'])
         T.append(d['segment_times'])
         F.append(d['filename'])
+        L.append(d['segment_labels'])
     
-    return X, Y, B, T, F
+    return X, Y, B, T, F, L
 
 
 if __name__ == '__main__':
     salami_path = sys.argv[1]
     output_path = sys.argv[2]
-    X, Y, B, T, F = make_dataset(rootpath=salami_path, output_path=output_path)
+    X, Y, B, T, F, L = make_dataset(rootpath=salami_path, output_path=output_path)
     with open('%s/segment_data.pickle' % output_path, 'w') as f:
-        pickle.dump( (X, Y, B, T, F), f)
+        pickle.dump( (X, Y, B, T, F, L), f)

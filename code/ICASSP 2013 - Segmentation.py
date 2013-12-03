@@ -21,7 +21,7 @@ def load_annotations(path):
     
     files = sorted(glob.glob(path))
     
-    data = [mir_eval.util.import_segment_boundaries(f) for f in files]
+    data = [mir_eval.util.import_segments(f)[0] for f in files]
     
     return data
 
@@ -41,7 +41,7 @@ def evaluate_set(SETNAME, agg=True):
         
         # Scrub the predictions to valid ranges
         for i in range(len(predictions)):
-            predictions[i] = mir_eval.util.adjust_segment_boundaries(predictions[i], t_max=truth[i][-1])
+            predictions[i] = mir_eval.util.adjust_segments(predictions[i], t_max=truth[i][-1])
             
         # Compute metrics
         my_scores = []
@@ -348,22 +348,32 @@ make_rep_feature_plot(M[:,40:137])
 
 # <codecell>
 
-model_fda = np.load('/home/bmcfee/git/olda/data/model_fda_beatles.npy')
-model_olda  = np.load('/home/bmcfee/git/olda/data/model_olda_beatles.npy')
-figure(figsize=(8,8))
-subplot(211)
-imshow(model_fda, aspect='auto', interpolation='none', cmap='PRGn_r')
-ylabel('Beatles: FDA')
+model_fda = np.load('/home/bmcfee/git/olda/data/model_fda_salami.npy')
+model_rfda = np.load('/home/bmcfee/git/olda/data/model_rfda_salami.npy')
+model_olda  = np.load('/home/bmcfee/git/olda/data/model_olda_salami.npy')
+figure(figsize=(10,10))
+subplot(311)
+librosa.display.specshow(model_fda, origin='upper')
+
+ylabel('SALAMI: FDA')
 yticks([])
 #ylabel("More important $\\rightarrow$")
 #xticks([0, 32, 44, 76, 108], ['MFCC', 'Chroma', 'Rep-M', 'Rep-C', 'Time'], rotation=-30, horizontalalignment='left')
 xticks([])
 #colorbar()
 
-subplot(212)
-imshow(model_olda, aspect='auto', interpolation='none', cmap='PRGn_r')
-ylabel('Beatles: OLDA')
+subplot(312)
+librosa.display.specshow(model_rfda, origin='upper')
+ylabel('SALAMI: RFDA')
 #colorbar(orientation='horizontal')
+#ylabel("More important $\\rightarrow$")
+yticks([])
+
+
+subplot(313)
+librosa.display.specshow(model_olda, origin='upper')
+ylabel('SALAMI: OLDA')
+colorbar(orientation='horizontal')
 #ylabel("More important $\\rightarrow$")
 yticks([])
 xticks([0, 32, 44, 76, 108], ['MFCC', '$\uparrow$\nChroma', 'R-MFCC', 'R-Chroma', 'Time'], horizontalalignment='left')

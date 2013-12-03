@@ -123,7 +123,7 @@ def features(filename):
         return C_to_Chr.dot(CQT).astype(np.float32)
 
     # Latent factor repetition features
-    def repetition(X, metric='seuclidean'):
+    def repetition(X, metric='sqeuclidean'):
         R = librosa.segment.recurrence_matrix(X, 
                                             k=2 * int(np.ceil(np.sqrt(X.shape[1]))), 
                                             width=REP_WIDTH, 
@@ -188,7 +188,7 @@ def features(filename):
     
     # Beat-synchronous repetition features
     print '\t[5/5] generating structure features'
-    R_timbre = repetition(M, metric='seuclidean')
+    R_timbre = repetition(M)
     R_chroma = repetition(librosa.segment.stack_memory(C), metric='cosine')
     
     # Stack it all up
