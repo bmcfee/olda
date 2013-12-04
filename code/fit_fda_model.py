@@ -113,7 +113,7 @@ def fit_model(X, Y, B, T, n_jobs):
 if __name__ == '__main__':
     parameters = process_arguments()
 
-    X, Y, B, T, F = load_data(parameters['input_file'])
+    X, Y, B, T = load_data(parameters['input_file'])[:4]
 
     model = fit_model(X, Y, B, T, parameters['num_jobs'])
 
