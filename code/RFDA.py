@@ -81,7 +81,6 @@ class RFDA(BaseEstimator, TransformerMixin):
                 self.scatter_within_  = self.sigma * np.eye(d)
                 self.scatter_restricted_ = np.zeros(d)
                 
-            # TODO:   2013-11-30 14:23:23 by Brian McFee <brm2132@columbia.edu>
             # compute the mean and cov of each segment
             global_mean = np.mean(xi, axis=1, keepdims=True)
             
@@ -90,15 +89,17 @@ class RFDA(BaseEstimator, TransformerMixin):
             
                 seg_length = seg_end - seg_start
                 
+                if seg_length < 2:
+                    continue
+
                 seg_mean = np.mean(xi[:, seg_start:seg_end], axis=1, keepdims=True)
                 
                 mu_diff = seg_mean - global_mean
                 self.scatter_restricted_ = self.scatter_restricted_ + seg_length * np.dot(mu_diff, mu_diff.T)
 
-                if seg_length > 1:
-                    seg_cov  = np.cov(xi[:, seg_start:seg_end])
+                seg_cov  = np.cov(xi[:, seg_start:seg_end])
                 
-                    self.scatter_within_ = self.scatter_within_ + seg_length * seg_cov
+                self.scatter_within_ = self.scatter_within_ + seg_length * seg_cov
                 
                 
         e_vals, e_vecs = scipy.linalg.eig(self.scatter_restricted_, self.scatter_within_)

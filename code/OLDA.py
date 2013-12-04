@@ -89,12 +89,12 @@ class OLDA(BaseEstimator, TransformerMixin):
             
                 seg_length = seg_end - seg_start
                 
+                if seg_length < 2:
+                    continue
+
                 seg_mean = np.mean(xi[:, seg_start:seg_end], axis=1, keepdims=True)
-                
-                if seg_length > 1:
-                    seg_cov  = np.cov(xi[:, seg_start:seg_end])
-                
-                    self.scatter_within_ = self.scatter_within_ + seg_length * seg_cov
+                seg_cov  = np.cov(xi[:, seg_start:seg_end])    
+                self.scatter_within_ = self.scatter_within_ + seg_length * seg_cov
                 
                 
                 if prev_mean is not None:
