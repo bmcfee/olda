@@ -67,7 +67,7 @@ def score_model(model, x, b, t):
 
 def fit_model(X, Y, B, T, n_jobs):
 
-    SIGMA = 10**np.arange(0, 8)
+    SIGMA = 10**np.arange(0, 10)
 
     best_score  = -np.inf
     best_sigma  = None
