@@ -43,9 +43,9 @@ def load_data(input_file):
         #   T = true segment boundaries (seconds)
         #   F = filename
 
-        X, Y, B, T, F = pickle.load(f)
+        X, Y, B, T = pickle.load(f)[:4]
 
-    return X, Y, B, T, F
+    return X, Y, B, T
 
 def score_model(model, x, b, t):
 
