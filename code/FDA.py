@@ -49,6 +49,8 @@ class FDA(BaseEstimator, TransformerMixin):
 
         for c in classes:
             n_c             = np.sum(Y==c)
+            if n_c < 2:
+                continue
             mu_diff         = np.mean(X[Y==c], axis=0, keepdims=True) - mean_global
             scatter_between = scatter_between + n_c * np.dot(mu_diff.T, mu_diff)
             scatter_within  = scatter_within  + n_c * np.cov(X[Y==c], rowvar=0)
