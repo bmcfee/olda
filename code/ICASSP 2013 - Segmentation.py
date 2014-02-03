@@ -168,13 +168,27 @@ def get_worst_examples(SETNAME, perfs, algorithm, idx, k=10):
 
 # <codecell>
 
-for alg in sorted(ind_perfs_beatles.keys()):
-    get_worst_examples('BEATLES', ind_perfs_beatles, alg, 10, 10)
+ind_perfs_billboard = evaluate_set('BILLBOARD', agg=False)
+perfs_billboard = {}
+for alg in ind_perfs_billboard:
+    perfs_billboard[alg] = np.mean(ind_perfs_billboard[alg], axis=0)
+
+# <codecell>
+
+pprint(perfs_billboard)
+
+# <codecell>
+
+for idx in range(len(METRICS)):
+    get_top_sig('BILLBOARD', ind_perfs_billboard, idx=idx)
     print
 
 # <codecell>
 
-perfs_beatles = evaluate_set('BEATLES')
+ind_perfs_beatles = evaluate_set('BEATLES', agg=False)
+perfs_beatles = {}
+for alg in ind_perfs_beatles:
+    perfs_beatles[alg] = np.mean(ind_perfs_beatles[alg], axis=0)
 
 # <codecell>
 
@@ -182,17 +196,7 @@ pprint(perfs_beatles)
 
 # <codecell>
 
-save_results('/home/bmcfee/git/olda/data/beatles_scores_fixed_rfda.csv', perfs_beatles)
-
-# <codecell>
-
-ind_perfs_beatles = evaluate_set('BEATLES', agg=False)
-
-# <codecell>
-
-perfs_beatles = {}
-for alg in perfs_beatles:
-    perfs_beatles[alg] = np.mean(perfs_beatles[alg], axis=0)
+save_results('/home/bmcfee/git/olda/data/beatles_scores.csv', perfs_beatles)
 
 # <codecell>
 
@@ -206,17 +210,16 @@ plot_boxes(ind_perfs_beatles)
 
 # <codecell>
 
-perfs_salami = evaluate_set('SALAMI', agg=True)
+for alg in sorted(ind_perfs_beatles.keys()):
+    get_worst_examples('BEATLES', ind_perfs_beatles, alg, 10, 10)
+    print
 
 # <codecell>
 
 ind_perfs_salami = evaluate_set('SALAMI', agg=False)
-
-# <codecell>
-
 perfs_salami = {}
-for alg in perfs_salami:
-    perfs_salami[alg] = np.mean(perfs_salami[alg], axis=0)
+for alg in ind_perfs_salami:
+    perfs_salami[alg] = np.mean(ind_perfs_salami[alg], axis=0)
 
 # <codecell>
 
@@ -224,12 +227,12 @@ pprint(perfs_salami)
 
 # <codecell>
 
-save_results('/home/bmcfee/git/olda/data/salami_scores_fixed_rfda.csv', perfs_salami)
+save_results('/home/bmcfee/git/olda/data/salami_scores.csv', perfs_salami)
 
 # <codecell>
 
 for alg in sorted(ind_perfs_salami.keys()):
-    get_worst_examples('SALAMI', ind_perfs_salami, alg, 8, 5)
+    get_worst_examples('SALAMI', ind_perfs_salami, alg, 10, 5)
     print
 
 # <codecell>
