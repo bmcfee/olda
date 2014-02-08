@@ -21,7 +21,7 @@ def load_annotations(path):
     
     files = sorted(glob.glob(path))
     
-    data = [mir_eval.util.import_segments(f)[0] for f in files]
+    data = [np.unique(mir_eval.io.load_annotation(f)[0].ravel()) for f in files]
     
     return data
 
@@ -30,6 +30,7 @@ def load_annotations(path):
 def evaluate_set(SETNAME, agg=True):
     
     truth = load_annotations('%s/truth/%s/*' % (ROOTPATH, SETNAME))
+    
     
     algos = map(os.path.basename, sorted(glob.glob('%s/predictions/%s/*' % (ROOTPATH, SETNAME))))
     
@@ -41,7 +42,7 @@ def evaluate_set(SETNAME, agg=True):
         
         # Scrub the predictions to valid ranges
         for i in range(len(predictions)):
-            predictions[i] = mir_eval.util.adjust_boundaries(predictions[i], t_max=truth[i][-1])[0]
+            predictions[i] = mir_eval.util.adjust_times(predictions[i], t_max=truth[i][-1])[0]
             
         # Compute metrics
         my_scores = []
@@ -53,8 +54,8 @@ def evaluate_set(SETNAME, agg=True):
             S.extend(mir_eval.segment.boundary_deviation(t, p))
             S.extend(mir_eval.segment.frame_clustering_nce(t, p))
             S.extend(mir_eval.segment.frame_clustering_pairwise(t, p))
-            S.extend(mir_eval.segment.frame_clustering_mutual_information(t, p))
-            S.append(mir_eval.segment.frame_clustering_rand(t, p))
+            S.extend(mir_eval.segment.frame_clustering_mi(t, p))
+            S.append(mir_eval.segment.frame_clustering_ari(t, p))
             my_scores.append(S)
             
         my_scores = np.array(my_scores)
@@ -196,7 +197,11 @@ pprint(perfs_beatles)
 
 # <codecell>
 
-save_results('/home/bmcfee/git/olda/data/beatles_scores.csv', perfs_beatles)
+save_results('/home/bmcfee/git/olda/data/final_beatles_scores.csv', perfs_beatles)
+
+# <codecell>
+
+del ind_perfs_beatles['rfda']
 
 # <codecell>
 
@@ -227,13 +232,17 @@ pprint(perfs_salami)
 
 # <codecell>
 
-save_results('/home/bmcfee/git/olda/data/salami_scores.csv', perfs_salami)
+save_results('/home/bmcfee/git/olda/data/final_salami_scores.csv', perfs_salami)
 
 # <codecell>
 
 for alg in sorted(ind_perfs_salami.keys()):
     get_worst_examples('SALAMI', ind_perfs_salami, alg, 10, 5)
     print
+
+# <codecell>
+
+del ind_perfs_salami['rfda']
 
 # <codecell>
 
@@ -262,9 +271,9 @@ def get_beat_mfccs(filename):
     
     S = librosa.feature.melspectrogram(y, sr, n_fft=2048, hop_length=64, n_mels=128, fmax=8000)
     
-    tempo, beats = librosa.beat.beat_track(y, sr, n_fft=2048, hop_length=64)
+    tempo, beats = librosa.beat.beat_track(y=y, sr=sr, hop_length=64)
     
-    M = librosa.feature.mfcc(librosa.logamplitude(S), d=32)
+    M = librosa.feature.mfcc(librosa.logamplitude(S), n_mfcc=32)
     M = librosa.feature.sync(M, beats)
     return M
 
@@ -299,15 +308,13 @@ def compress_data(X, k):
 
 def make_rep_feature_plot(M):
     
-    myimshow = functools.partial(imshow, aspect='auto', interpolation='none', origin='lower', cmap='gray_r')
+    R = librosa.segment.recurrence_matrix(M)
     
-    R = librosa.segment.recurrence_matrix(M, k=2*np.sqrt(1./M.shape[1]), sym=False).astype(np.float)
-    
-    Rskew = librosa.segment.structure_feature(R, pad=True)
+    Rskew = librosa.segment.structure_feature(R)
     Rskew = np.roll(Rskew, M.shape[1], axis=0)
     
     
-    Rfilt = scipy.signal.medfilt2d(Rskew, kernel_size=(1, 7))
+    Rfilt = scipy.signal.medfilt2d(Rskew.astype(np.float32), kernel_size=(1, 7))
     #Rfilt = Rfilt[Rfilt.sum(axis=1) > 0, :]
     
     Rlatent = compress_data(Rfilt, 8)
@@ -315,35 +322,44 @@ def make_rep_feature_plot(M):
     
     figure(figsize=(6,6))
     subplot(221)
-    myimshow(R), title('Self-similarity')
+    librosa.display.specshow(R), title('Self-similarity')
     xlabel('Beat'), ylabel('Beat')
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     yticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
     subplot(222)
-    myimshow(Rskew), title('Skewed self-sim.')
+    librosa.display.specshow(Rskew, cmap='gray_r'), title('Skewed self-sim.')
     xlabel('Beat'), ylabel('Lag')
     yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1]+1, M.shape[1], Rskew.shape[0] / 6))
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
     subplot(223)
-    myimshow(Rfilt), title('Filtered self-sim.')
+    librosa.display.specshow(Rfilt, cmap='gray_r'), title('Filtered self-sim.')
     xlabel('Beat'), ylabel('Lag')
     yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1]+1, M.shape[1], Rskew.shape[0] / 6))
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
     subplot(224)
-    myimshow(Rlatent, origin='upper', cmap='PRGn_r'), title('Latent repetition')
+    librosa.display.specshow(Rlatent, origin='upper'), title('Latent repetition')
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
-    xlabel('Beat'), ylabel('Factor')
+    xlabel('Beat'), ylabel('Factor'), yticks(range(Rlatent.shape[0]))
     tight_layout()
     
-    savefig('/home/bmcfee/git/olda/paper/figs/rep.pdf', format='pdf', pad_inches=0, transparent=True)
+    #savefig('/home/bmcfee/git/olda/paper/figs/rep.pdf', format='pdf', pad_inches=0, transparent=True)
     #savefig('/home/bmcfee/git/olda/paper/figs/rep.svg', format='svg', pad_inches=0, transparent=True, dpi=200)
 
 # <codecell>
 
 M = get_beat_mfccs('/home/bmcfee/data/CAL500/mp3/2pac-trapped.mp3')
+
+# <codecell>
+
+reload(librosa.segment)
+reload(librosa)
+
+# <codecell>
+
+make_rep_feature_plot(M)
 
 # <codecell>
 

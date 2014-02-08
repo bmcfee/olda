@@ -273,7 +273,7 @@ available at \url{https://github.com/bmcfee/olda}.}
 All signals were downsampled to 22KHz mono, and analyzed with a 93ms window and 3ms hop.  MFCCs are generated from 128 Mel bands
 with an 8KHz cutoff. We take 32 MFCCs and 12 chroma bins; repetition features are calculated with $2\sqrt{t}$ nearest neighbors,
 median-filtered with a window width of 7, and projected to 32 dimensions each.  Including the four time-stamp features, the combined
-representation has dimension $D=112$. Beat tracking was done with the \emph{med-full} method described in~\cite{mcfee2014beat}.
+representation has dimension $D=112$. Beat tracking was done with the \emph{med-percussive} method described in~\cite{mcfee2014beat}.
 
 \subsection{Data and metrics}
 To evaluate the proposed methods, we evaluate predicted segmentations on two publicly available datasets:
@@ -293,7 +293,7 @@ On SALAMI-Free, we include comparisons to C-NMF~\cite{nieto2013convex} and SI-LP
 For both datasets, we evaluate the unweighted feature representation (\emph{Unweighted}), FDA optimization (using the
 one-class-per-segment approach described in \Cref{sec:olda}), and OLDA.\@
 To ensure fairness of evaluation, the FDA and OLDA models used on the Beatles-ISO were trained using only
-SALAMI-free data, and vice versa.  FDA and OLDA were trained by optimizing $\lambda \in \{10^0, 10^1, \dots, 10^7\}$
+SALAMI-free data, and vice versa.  FDA and OLDA were trained by optimizing $\lambda \in \{10^0, 10^1, \dots, 10^9\}$
 to maximize $S_F$ score (see below) on the training set.
 
 We report the following standard segmentation metrics:
@@ -321,13 +321,13 @@ Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE 
 \Cref{tab:results} lists the results for the Beatles-ISO and SALAMI-free.
 SMGA performs best\footnote{SMGA parameters were tuned to perform well on the Beatles data~\cite{serra2012unsupervised}.}
 on most metrics for Beatles-ISO.\@
-The NCE scores are qualitatively comparable between SMGA and OLDA ($S_F$ of 0.829 and 0.802, respectively).
+The NCE scores are qualitatively comparable between SMGA and OLDA ($S_F$ of 0.829 and 0.812, respectively).
 The proposed methods achieve higher accuracy for boundary detection at 0.5s resolution, which can be attributed to the increased
-precision afforded by the median-filtered repetition features.
+precision afforded by the beat-synchronous and median-filtered repetition features.
 
 On both datasets, OLDA consistently improves performance over the unweighted model across all metrics, and achieves the highest scores on three out of four metrics for SALAMI-free.
-The results for FDA are mixed: while FDA performs comparably to OLDA on SALAMI-free, its performance degrades from the unweighted model on Beatles-ISO.\@
-By ignoring irrelevant segment comparisons, the OLDA model is better able to generalize from the multiple-artist training set than FDA.\@
+% The results for FDA are mixed: while FDA performs comparably to OLDA on SALAMI-free, its performance degrades from the unweighted model on Beatles-ISO.\@
+% By ignoring irrelevant segment comparisons, the OLDA model is better able to generalize from the multiple-artist training set than FDA.\@
 
 \section{Conclusion}
 \label{sec:conclusion}
