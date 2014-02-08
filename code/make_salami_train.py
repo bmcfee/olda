@@ -30,7 +30,7 @@ def align_segmentation(filename, beat_times):
             list of segment labels
     '''
     
-    segment_times, segment_labels = mir_eval.util.import_segments(filename)
+    segment_times, segment_labels = mir_eval.io.load_events(filename)
 
     segment_beats = []
     for t in segment_times:

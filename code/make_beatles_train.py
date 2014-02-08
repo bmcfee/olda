@@ -39,14 +39,15 @@ def align_segmentation(filename, beat_times):
     '''
     
     # These labels have both begin and end times
-    segment_times, segment_labels = mir_eval.util.import_segments(filename)
+    segment_times, segment_labels = mir_eval.io.load_annotation(filename)
 
+    segment_times = np.unique(segment_times.ravel())
     segment_beats = []
     for t in segment_times:
         # Find the closest beat
         segment_beats.append( np.argmin((beat_times - t)**2))
         
-    return segment_beats, segment_times, segment_labels
+    return segment_beats, segment_times, segment_labels[:-1]
 
 # <codecell>
 
