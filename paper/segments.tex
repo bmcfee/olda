@@ -152,7 +152,8 @@ Reducing $L$ to $d < 2t$ principal components retains the most important factors
 the influence of track duration. 
 \Cref{fig:rep} (bottom-right) depicts an example of the resulting features.  
 Small values of $d$ often suffice to capture global structure: in the given
-example, the top two components code for segment position and membership.
+example, the top component suffices to detect transitions between verse 
+(non-repetitive) and chorus (repetitive).
 
 \begin{figure}
 \centering%
@@ -273,7 +274,7 @@ available at \url{https://github.com/bmcfee/olda}.}
 All signals were downsampled to 22KHz mono, and analyzed with a 93ms window and 3ms hop.  MFCCs are generated from 128 Mel bands
 with an 8KHz cutoff. We take 32 MFCCs and 12 chroma bins; repetition features are calculated with $2\sqrt{t}$ nearest neighbors,
 median-filtered with a window width of 7, and projected to 32 dimensions each.  Including the four time-stamp features, the combined
-representation has dimension $D=112$. Beat tracking was done with the \emph{med-percussive} method described in~\cite{mcfee2014beat}.
+representation has dimension $D=112$. Beats were detected by the \emph{median-percussive} method~\cite{mcfee2014beat}.
 
 \subsection{Data and metrics}
 To evaluate the proposed methods, we evaluate predicted segmentations on two publicly available datasets:

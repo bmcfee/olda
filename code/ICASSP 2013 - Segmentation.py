@@ -308,7 +308,7 @@ def compress_data(X, k):
 
 def make_rep_feature_plot(M):
     
-    R = librosa.segment.recurrence_matrix(M)
+    R = librosa.segment.recurrence_matrix(M, metric='seuclidean')
     
     Rskew = librosa.segment.structure_feature(R)
     Rskew = np.roll(Rskew, M.shape[1], axis=0)
@@ -330,13 +330,13 @@ def make_rep_feature_plot(M):
     subplot(222)
     librosa.display.specshow(Rskew, cmap='gray_r'), title('Skewed self-sim.')
     xlabel('Beat'), ylabel('Lag')
-    yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1]+1, M.shape[1], Rskew.shape[0] / 6))
+    yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1]+2, 1+M.shape[1], Rskew.shape[0] / 6))
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
     subplot(223)
     librosa.display.specshow(Rfilt, cmap='gray_r'), title('Filtered self-sim.')
     xlabel('Beat'), ylabel('Lag')
-    yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1]+1, M.shape[1], Rskew.shape[0] / 6))
+    yticks(range(0, Rskew.shape[0] + 1, Rskew.shape[0] / 6), range(-M.shape[1]+2, 1+M.shape[1], Rskew.shape[0] / 6))
     xticks(range(0, M.shape[1] + 1, M.shape[1] / 6))
     
     subplot(224)
@@ -345,17 +345,12 @@ def make_rep_feature_plot(M):
     xlabel('Beat'), ylabel('Factor'), yticks(range(Rlatent.shape[0]))
     tight_layout()
     
-    #savefig('/home/bmcfee/git/olda/paper/figs/rep.pdf', format='pdf', pad_inches=0, transparent=True)
+    savefig('/home/bmcfee/git/olda/paper/figs/rep.pdf', format='pdf', pad_inches=0, transparent=True)
     #savefig('/home/bmcfee/git/olda/paper/figs/rep.svg', format='svg', pad_inches=0, transparent=True, dpi=200)
 
 # <codecell>
 
 M = get_beat_mfccs('/home/bmcfee/data/CAL500/mp3/2pac-trapped.mp3')
-
-# <codecell>
-
-reload(librosa.segment)
-reload(librosa)
 
 # <codecell>
 
