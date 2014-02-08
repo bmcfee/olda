@@ -181,7 +181,10 @@ def features(filename):
 
     B = librosa.frames_to_time(beats, sr=SR, hop_length=HOP_BEATS)
 
-    beat_frames = librosa.time_to_frames(B, sr=SR, hop_length=HOP_LENGTH)
+    beat_frames = np.unique(librosa.time_to_frames(B, sr=SR, hop_length=HOP_LENGTH))
+
+    # Stash beat times aligned to the longer hop lengths
+    B = librosa.frames_to_time(beat_frames, sr=SR, hop_length=HOP_LENGTH)
 
     print '\t[4/6] generating MFCC'
     # Get the MFCCs
@@ -198,7 +201,7 @@ def features(filename):
     C = librosa.feature.sync(C, beat_frames, aggregate=np.median)
     
     # Time-stamp features
-    N = np.arange(float(len(beats)))
+    N = np.arange(float(len(beat_frames)))
     
     # Beat-synchronous repetition features
     print '\t[6/6] generating structure features'
