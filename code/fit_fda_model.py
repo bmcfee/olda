@@ -61,7 +61,7 @@ def score_model(model, x, b, t):
     kmin, kmax     = segmenter.get_num_segs(b[-1])
     boundary_beats = segmenter.get_segments(xt, kmin=kmin, kmax=kmax)
 
-    boundary_times = mir_eval.util.adjust_boundaries(b[boundary_beats], t_min=0.0, t_max=t[-1])[0]
+    boundary_times = mir_eval.util.adjust_times(b[boundary_beats], t_min=0.0, t_max=t[-1])[0]
 
     score = mir_eval.segment.frame_clustering_nce(t, boundary_times)[-1]
 
