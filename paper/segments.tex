@@ -291,18 +291,19 @@ On both datasets, we compare to SMGA~\cite{serra2012unsupervised}, which achieve
 highest performance in the 2012 MIREX structural segmentation evaluation~\cite{Downie2008}.
 On SALAMI-Free, we include comparisons to C-NMF~\cite{nieto2013convex} and SI-PLCA~\cite{weiss2011unsupervised}.
 
-For both datasets, we evaluate the unweighted feature representation (\emph{Unweighted}), FDA optimization (using the
+For both datasets, we evaluate the unweighted feature representation (\emph{Native}), FDA optimization (using the
 one-class-per-segment approach described in \Cref{sec:olda}), and OLDA.\@
 To ensure fairness of evaluation, the FDA and OLDA models used on the Beatles-ISO were trained using only
 SALAMI-free data, and vice versa.  FDA and OLDA were trained by optimizing $\lambda \in \{10^0, 10^1, \dots, 10^9\}$
-to maximize $F_{0.5s}$ score (see below) on the training set.
+to maximize $F_{0.5}$ score (see below) on the training set.
 
-We report the following boundary detection metrics:
-\footnote{For a detailed description of segmentation metrics, see~\cite{mirexstructure}.}
-\begin{description}\addtolength{\itemsep}{-0.25\baselineskip}%
-\item[Boundary retrieval] F-measure of segment boundary detection within a 0.5s or 3s window,
-\item[Boundary deviation] Median time (seconds) from true to predicted boundaries (T2P) and vice versa (P2T). 
-\end{description}
+% We report the following boundary detection metrics:
+For each method and dataset, we report the precision, recall, and F-measure of boundary retrieval, using either a 0.5-second or 3-second window.\footnote{
+For a detailed description of segmentation metrics, see~\cite{mirexstructure}.}
+% \begin{description}\addtolength{\itemsep}{-0.25\baselineskip}%
+% \item[Boundary retrieval] F-measure of segment boundary detection within a 0.5s or 3s window,
+% \item[Boundary deviation] Median time (seconds) from true to predicted boundaries (T2P) and vice versa (P2T). 
+% \end{description}
 % Note that boundary retrieval and frame clustering metrics are sensitive to the number of
 % predicted segments, upon which multiple human annotators often disagree.
 % NCE is designed to be robust to changes in segmentation granularity.
@@ -315,11 +316,12 @@ We report the following boundary detection metrics:
 % \input{results-adj-min.tex}
 
 \Cref{tab:results} lists the results for the Beatles-ISO and SALAMI-free.
-SMGA performs best\footnote{SMGA parameters were tuned to perform well on the Beatles data~\cite{serra2012unsupervised}.}
-on most metrics for Beatles-ISO.\@
+SMGA achieves highest performance with a 3-second window on both datasets.\footnote{SMGA parameters were tuned to perform well on the Beatles data~\cite{serra2012unsupervised}.}\@
 % The NCE scores are qualitatively comparable between SMGA and OLDA ($S_F$ of 0.829 and 0.812, respectively).
 The proposed methods achieve higher accuracy for boundary detection at 0.5s resolution, which can be attributed to the increased
-precision afforded by the beat-synchronous and median-filtered repetition features.
+accuracy afforded by the beat-synchronous and median-filtered repetition features.  
+
+While precision remains fairly consistent for each variation of the proposed method, we note that both FDA and OLDA improve boundary recall.
 
 % On both datasets, OLDA consistently improves over the unweighted model, and achieves the highest scores on three out of four metrics for SALAMI-free.
 % The results for FDA are mixed: while FDA performs comparably to OLDA on SALAMI-free, its performance degrades from the unweighted model on Beatles-ISO.\@
@@ -330,8 +332,8 @@ precision afforded by the beat-synchronous and median-filtered repetition featur
 This paper introduced the ordinal linear discriminant analysis (OLDA) method for learning feature projections to improve time-series clustering.
 The proposed latent structural repetition features provide a convenient, fixed-dimensional representation of global song structure, which 
 facilitates modeling across multiple songs.
-The effective combination of global structural cues with local features results in significant improvement in segmentation accuracy 
-on the mixed-genre SALAMI-free dataset.
+% The effective combination of global structural cues with local features results in significant improvement in segmentation accuracy 
+% on the mixed-genre SALAMI-free dataset.
 
 \section{Acknowledgments}
 The authors thank Oriol Nieto for discovering an evaluation error in an early draft of this work.
