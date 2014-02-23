@@ -289,44 +289,39 @@ and has much more diversity of genre, style, and instrumentation.
 
 On both datasets, we compare to SMGA~\cite{serra2012unsupervised}, which achieved the
 highest performance in the 2012 MIREX structural segmentation evaluation~\cite{Downie2008}.
-On SALAMI-Free, we include comparisons to C-NMF~\cite{nieto2013convex} and SI-LPCA~\cite{weiss2011unsupervised}.
+On SALAMI-Free, we include comparisons to C-NMF~\cite{nieto2013convex} and SI-PLCA~\cite{weiss2011unsupervised}.
 
 For both datasets, we evaluate the unweighted feature representation (\emph{Unweighted}), FDA optimization (using the
 one-class-per-segment approach described in \Cref{sec:olda}), and OLDA.\@
 To ensure fairness of evaluation, the FDA and OLDA models used on the Beatles-ISO were trained using only
 SALAMI-free data, and vice versa.  FDA and OLDA were trained by optimizing $\lambda \in \{10^0, 10^1, \dots, 10^9\}$
-to maximize $S_F$ score (see below) on the training set.
+to maximize $F_{0.5s}$ score (see below) on the training set.
 
-We report the following standard segmentation metrics:
+We report the following boundary detection metrics:
 \footnote{For a detailed description of segmentation metrics, see~\cite{mirexstructure}.}
 \begin{description}\addtolength{\itemsep}{-0.25\baselineskip}%
-% \item[Boundary retrieval] Precision, recall, and F-measure of segment boundary detection within a 0.5s or 3s window,
 \item[Boundary retrieval] F-measure of segment boundary detection within a 0.5s or 3s window,
-% \item[Normalized conditional entropy] (NCE) Over- and under-segmentation scores $S_O$ and $S_U$, and their harmonic
-% mean $S_F$, and
-\item[Normalized conditional entropy] (NCE) Harmonic mean ($S_F$) of over- and under-segmentation $S_O$ and $S_U$, 
-% \item[Frame clustering] Precision ($P_C$), recall ($R_C$), and F-measure ($F_C$) of detecting whether any two frames 
-% belong to the same segment.
-\item[Frame clustering] F-measure ($F_C$) of detecting whether any two frames belong to the same segment.
+\item[Boundary deviation] Median time (seconds) from true to predicted boundaries (T2P) and vice versa (P2T). 
 \end{description}
-Note that boundary retrieval and frame clustering metrics are sensitive to the number of
-predicted segments, upon which multiple human annotators often disagree.
-NCE is designed to be robust to changes in segmentation granularity.
-Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE and frame clustering metrics. 
+% Note that boundary retrieval and frame clustering metrics are sensitive to the number of
+% predicted segments, upon which multiple human annotators often disagree.
+% NCE is designed to be robust to changes in segmentation granularity.
+% Following MIREX practice, frames are sampled at a frequency of 10Hz for the NCE and frame clustering metrics. 
 
 
 \subsection{Results}
 \label{sec:results}
-\input{results-adj-min.tex}
+\input{results-final-min.tex}
+% \input{results-adj-min.tex}
 
 \Cref{tab:results} lists the results for the Beatles-ISO and SALAMI-free.
 SMGA performs best\footnote{SMGA parameters were tuned to perform well on the Beatles data~\cite{serra2012unsupervised}.}
 on most metrics for Beatles-ISO.\@
-The NCE scores are qualitatively comparable between SMGA and OLDA ($S_F$ of 0.829 and 0.812, respectively).
+% The NCE scores are qualitatively comparable between SMGA and OLDA ($S_F$ of 0.829 and 0.812, respectively).
 The proposed methods achieve higher accuracy for boundary detection at 0.5s resolution, which can be attributed to the increased
 precision afforded by the beat-synchronous and median-filtered repetition features.
 
-On both datasets, OLDA consistently improves over the unweighted model, and achieves the highest scores on three out of four metrics for SALAMI-free.
+% On both datasets, OLDA consistently improves over the unweighted model, and achieves the highest scores on three out of four metrics for SALAMI-free.
 % The results for FDA are mixed: while FDA performs comparably to OLDA on SALAMI-free, its performance degrades from the unweighted model on Beatles-ISO.\@
 % By ignoring irrelevant segment comparisons, the OLDA model is better able to generalize from the multiple-artist training set than FDA.\@
 
@@ -339,6 +334,7 @@ The effective combination of global structural cues with local features results 
 on the mixed-genre SALAMI-free dataset.
 
 \section{Acknowledgments}
+The authors thank Oriol Nieto for discovering an evaluation error in an early draft of this work.
 The authors acknowledge support from The Andrew W. Mellon Foundation, and NSF grant IIS-1117015.
 
 \bibliographystyle{IEEEbib}

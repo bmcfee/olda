@@ -125,9 +125,11 @@ def get_top_sig(SETNAME, perfs, idx, p=0.05):
     best_mean = -np.inf
     best_alg  = None
     n_algs    = len(perfs)
-    
+    flip      = np.ones(len(METRICS))
+    flip[6]   = -1  #Boundary deviation should be sign-flipped
+    flip[7]   = -1
     for k in perfs:
-        data[k] = perfs[k][:, idx]
+        data[k] = flip[idx] * perfs[k][:, idx]
         mean[k] = np.mean(data[k])
         if mean[k] > best_mean:
             best_mean = mean[k]
@@ -216,7 +218,7 @@ plot_boxes(ind_perfs_beatles)
 # <codecell>
 
 for alg in sorted(ind_perfs_beatles.keys()):
-    get_worst_examples('BEATLES', ind_perfs_beatles, alg, 10, 10)
+    get_worst_examples('BEATLES', ind_perfs_beatles, alg, 2, 10)
     print
 
 # <codecell>
@@ -237,7 +239,7 @@ save_results('/home/bmcfee/git/olda/data/final_salami_scores.csv', perfs_salami)
 # <codecell>
 
 for alg in sorted(ind_perfs_salami.keys()):
-    get_worst_examples('SALAMI', ind_perfs_salami, alg, 10, 5)
+    get_worst_examples('SALAMI', ind_perfs_salami, alg, 2, 5)
     print
 
 # <codecell>
