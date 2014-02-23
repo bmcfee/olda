@@ -21,7 +21,7 @@ def load_annotations(path):
     
     files = sorted(glob.glob(path))
     
-    data = [np.unique(mir_eval.io.load_annotation(f)[0].ravel()) for f in files]
+    data = [mir_eval.io.load_annotation(f) for f in files]
     
     return data
 
@@ -42,20 +42,22 @@ def evaluate_set(SETNAME, agg=True):
         
         # Scrub the predictions to valid ranges
         for i in range(len(predictions)):
-            predictions[i] = mir_eval.util.adjust_times(predictions[i], t_max=truth[i][-1])[0]
+            predictions[i] = mir_eval.util.adjust_intervals(predictions[i][0], 
+                                                            labels=predictions[i][1], 
+                                                            t_max=truth[i][0][-1, -1])
             
         # Compute metrics
         my_scores = []
         
         for t, p in zip(truth, predictions):
             S = []
-            S.extend(mir_eval.segment.boundary_detection(t, p, window=0.5))
-            S.extend(mir_eval.segment.boundary_detection(t, p, window=3.0))
-            S.extend(mir_eval.segment.boundary_deviation(t, p))
-            S.extend(mir_eval.segment.frame_clustering_nce(t, p))
-            S.extend(mir_eval.segment.frame_clustering_pairwise(t, p))
-            S.extend(mir_eval.segment.frame_clustering_mi(t, p))
-            S.append(mir_eval.segment.frame_clustering_ari(t, p))
+            S.extend(mir_eval.segment.boundary_detection(t[0], p[0], window=0.5))
+            S.extend(mir_eval.segment.boundary_detection(t[0], p[0], window=3.0))
+            S.extend(mir_eval.segment.boundary_deviation(t[0], p[0]))
+            S.extend(mir_eval.segment.frame_clustering_nce(t[0], t[1], p[0], p[1]))
+            S.extend(mir_eval.segment.frame_clustering_pairwise(t[0], t[1], p[0], p[1]))
+            S.extend(mir_eval.segment.frame_clustering_mi(t[0], t[1], p[0], p[1]))
+            S.append(mir_eval.segment.frame_clustering_ari(t[0], t[1], p[0], p[1]))
             my_scores.append(S)
             
         my_scores = np.array(my_scores)
@@ -168,23 +170,6 @@ def get_worst_examples(SETNAME, perfs, algorithm, idx, k=10):
     print '%s\t%s\t%s' % (METRICS[idx], SETNAME, algorithm)
     for v in indices:
         print '%.3f\t%s' % (perfs[algorithm][v, idx], files[v])
-
-# <codecell>
-
-ind_perfs_billboard = evaluate_set('BILLBOARD', agg=False)
-perfs_billboard = {}
-for alg in ind_perfs_billboard:
-    perfs_billboard[alg] = np.mean(ind_perfs_billboard[alg], axis=0)
-
-# <codecell>
-
-pprint(perfs_billboard)
-
-# <codecell>
-
-for idx in range(len(METRICS)):
-    get_top_sig('BILLBOARD', ind_perfs_billboard, idx=idx)
-    print
 
 # <codecell>
 

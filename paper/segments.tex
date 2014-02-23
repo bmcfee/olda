@@ -76,7 +76,7 @@ genres (\eg, rock or pop), but fail for other styles (\eg, jazz or hip-hop) whic
 
 In this work, we propose a supervised learning algorithm to automatically adapt acoustic and structural features to the statistics
 of a training set. Given a collection of songs with structural annotations, the algorithm finds an optimal linear transformation
-of features to preserve and predict segments.
+of features to preserve and predict segment boundaries.
 
 \subsection{Our contributions}
 Our primary contribution in this work is the ordinal linear discriminant analysis (OLDA) technique to learn a 
@@ -249,7 +249,7 @@ A_\text{O} &\defeq \sum_{c < C} n_c (\mu_c - \mu_{c+}) (\mu_c - \mu_{c+})\trans\
 \mu_{c+} &\defeq \frac{n_c \mu_c + n_{c+1} \mu_{c+1} }{n_c + n_{c+1}}.
 \end{align*}
 Intuitively, $A_\text{O}$ measures the deviation of successive segments $(c, c+1)$ from their mutual centroid $\mu_{c+}$, 
-which is exactly the comparison performed for merge operations in the agglomerative clustering algorithm.
+which coincides with the comparison performed for merge operations in the agglomerative clustering algorithm.
 Optimizing $W$ to maximize this deviation, while minimizing within-segment variance, should enhance the overall segmentation accuracy.  
 %While FDA has a similar objective, its relation to the linkage-constrained clustering objective is tenuous.
 
