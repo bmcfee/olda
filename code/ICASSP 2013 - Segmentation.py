@@ -362,6 +362,22 @@ make_rep_feature_plot(M[:,40:137])
 
 # <codecell>
 
+import librosa
+
+# <codecell>
+
+model_olda  = np.load('/home/bmcfee/git/olda/data/model_olda_salami.npy')
+figure(figsize=(10,6))
+librosa.display.specshow(model_olda, origin='upper')
+colorbar()
+yticks([])
+xticks([0, 32, 44, 76, 108], ['MFCC', 'Chroma', 'R-MFCC', 'R-Chroma', 'Time'], horizontalalignment='left')
+
+tight_layout()
+savefig('/home/bmcfee/git/olda/model_olda_salami_w.png', format='png', pad_inches=0, transparent=True)
+
+# <codecell>
+
 model_fda = np.load('/home/bmcfee/git/olda/data/model_fda_salami.npy')
 model_rfda = np.load('/home/bmcfee/git/olda/data/model_rfda_salami.npy')
 model_olda  = np.load('/home/bmcfee/git/olda/data/model_olda_salami.npy')
