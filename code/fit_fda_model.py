@@ -63,7 +63,10 @@ def score_model(model, x, b, t):
 
     boundary_times = mir_eval.util.adjust_times(b[boundary_beats], t_min=0.0, t_max=t[-1])[0]
 
-    score = mir_eval.segment.boundary_detection(t, boundary_times)[-1]
+    # Convert boundaries to intervals
+    truth_intervals = mir_eval.util.boundaries_to_intervals(t)[0]
+    pred_intervals = mir_eval.util.boundaries_to_intervals(boundary_times)[0]
+    score = mir_eval.segment.boundary_detection(truth_intervals, pred_intervals)[-1]
 
     return score
 
