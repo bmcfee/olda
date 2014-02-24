@@ -54,10 +54,10 @@ def evaluate_set(SETNAME, agg=True):
             S.extend(mir_eval.segment.boundary_detection(t[0], p[0], window=0.5))
             S.extend(mir_eval.segment.boundary_detection(t[0], p[0], window=3.0))
             S.extend(mir_eval.segment.boundary_deviation(t[0], p[0]))
-            S.extend(mir_eval.segment.frame_clustering_nce(t[0], t[1], p[0], p[1]))
-            S.extend(mir_eval.segment.frame_clustering_pairwise(t[0], t[1], p[0], p[1]))
-            S.extend(mir_eval.segment.frame_clustering_mi(t[0], t[1], p[0], p[1]))
-            S.append(mir_eval.segment.frame_clustering_ari(t[0], t[1], p[0], p[1]))
+            #S.extend(mir_eval.segment.frame_clustering_nce(t[0], t[1], p[0], p[1]))
+            #S.extend(mir_eval.segment.frame_clustering_pairwise(t[0], t[1], p[0], p[1]))
+            #S.extend(mir_eval.segment.frame_clustering_mi(t[0], t[1], p[0], p[1]))
+            #S.append(mir_eval.segment.frame_clustering_ari(t[0], t[1], p[0], p[1]))
             my_scores.append(S)
             
         my_scores = np.array(my_scores)
@@ -72,10 +72,10 @@ def evaluate_set(SETNAME, agg=True):
 
 METRICS = ['BD.5 P', 'BD.5 R', 'BD.5 F', 
            'BD3 P', 'BD3 R', 'BD3 F', 
-           'BDev T2P', 'BDev P2T', 
-           'S_O', 'S_U', 'S_F', 
-           'Pair_P', 'Pair_R', 'Pair_F', 
-           'MI', 'AMI', 'NMI', 'ARI']
+           'BDev T2P', 'BDev P2T']
+           #'S_O', 'S_U', 'S_F', 
+           #'Pair_P', 'Pair_R', 'Pair_F', 
+           #'MI', 'AMI', 'NMI', 'ARI']
 
 # <codecell>
 
@@ -128,6 +128,7 @@ def get_top_sig(SETNAME, perfs, idx, p=0.05):
     best_alg  = None
     n_algs    = len(perfs)
     flip      = np.ones(len(METRICS))
+    
     flip[6]   = -1  #Boundary deviation should be sign-flipped
     flip[7]   = -1
     for k in perfs:
@@ -353,15 +354,15 @@ import librosa
 
 # <codecell>
 
-model_olda  = np.load('/home/bmcfee/git/olda/data/model_olda_salami.npy')
-figure(figsize=(10,6))
+model_olda  = np.load('/home/bmcfee/git/olda/data/model_olda_beatles.npy')
+figure(figsize=(8,5))
 librosa.display.specshow(model_olda, origin='upper')
 colorbar()
 yticks([])
 xticks([0, 32, 44, 76, 108], ['MFCC', 'Chroma', 'R-MFCC', 'R-Chroma', 'Time'], horizontalalignment='left')
 
 tight_layout()
-savefig('/home/bmcfee/git/olda/model_olda_salami_w.png', format='png', pad_inches=0, transparent=True)
+#savefig('/home/bmcfee/git/olda/model_olda_salami_w.png', format='png', pad_inches=0, transparent=True)
 
 # <codecell>
 
