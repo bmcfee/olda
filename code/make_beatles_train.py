@@ -64,6 +64,9 @@ def align_segmentation(filename, beat_times):
     segment_beats = list(segment_beats)
     segment_times_out = np.asarray(segment_times_out)[:, 0].squeeze()
 
+    if segment_times_out.ndim == 0:
+        segment_times_out = segment_times_out[np.newaxis]
+
     return segment_beats, segment_times_out, segment_labels_out
 
 # <codecell>
