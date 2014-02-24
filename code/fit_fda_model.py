@@ -61,7 +61,7 @@ def score_model(model, x, b, t):
     kmin, kmax     = segmenter.get_num_segs(b[-1])
     boundary_beats = segmenter.get_segments(xt, kmin=kmin, kmax=kmax)
 
-    if len(boundary_beats) == 0 or len(t) == 0:
+    if len(boundary_beats) < 2 or len(t) < 2:
         return 0.0
 
     boundary_times = mir_eval.util.adjust_events(b[boundary_beats], t_min=0.0, t_max=t[-1])[0]
