@@ -268,8 +268,8 @@ def get_beat_mfccs(filename):
 # <codecell>
 
 def compress_data(X, k):
-    sigma = np.cov(X)
-    e_vals, e_vecs = scipy.linalg.eig(sigma)
+    e_vals, e_vecs = scipy.linalg.eig(X.dot(X.T))
+    #e_vals, e_vecs = scipy.linalg.eig(np.cov(X))
         
     e_vals = np.maximum(0.0, np.real(e_vals))
     e_vecs = np.real(e_vecs)
@@ -296,6 +296,7 @@ def compress_data(X, k):
 
 def make_rep_feature_plot(M):
     
+    #R = librosa.segment.recurrence_matrix(librosa.segment.stack_memory(M), metric='seuclidean')
     R = librosa.segment.recurrence_matrix(M, metric='seuclidean')
     
     Rskew = librosa.segment.structure_feature(R)
@@ -333,7 +334,7 @@ def make_rep_feature_plot(M):
     xlabel('Beat'), ylabel('Factor'), yticks(range(Rlatent.shape[0]))
     tight_layout()
     
-    savefig('/home/bmcfee/git/olda/paper/figs/rep.pdf', format='pdf', pad_inches=0, transparent=True)
+    #savefig('/home/bmcfee/git/olda/paper/figs/rep.pdf', format='pdf', pad_inches=0, transparent=True)
     #savefig('/home/bmcfee/git/olda/paper/figs/rep.svg', format='svg', pad_inches=0, transparent=True, dpi=200)
 
 # <codecell>
@@ -363,6 +364,17 @@ xticks([0, 32, 44, 76, 108], ['MFCC', 'Chroma', 'R-MFCC', 'R-Chroma', 'Time'], h
 
 tight_layout()
 #savefig('/home/bmcfee/git/olda/model_olda_salami_w.png', format='png', pad_inches=0, transparent=True)
+
+# <codecell>
+
+librosa.display.specshow(model_olda.T.dot(model_olda), origin='upper')
+
+# <codecell>
+
+v, e = scipy.linalg.eig(model_olda.dot(model_olda.T))
+
+plot(np.sort(v)[::-1])
+axis('tight')
 
 # <codecell>
 
@@ -523,5 +535,5 @@ def rep_feature_svd(M):
 
 # <codecell>
 
-rep_feature_svd(M)#[:,40:137])
+rep_feature_svd(M[:,40:137])
 
