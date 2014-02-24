@@ -67,8 +67,7 @@ def features(filename):
     
 
     def compress_data(X, k):
-        sigma = np.cov(X)
-        e_vals, e_vecs = scipy.linalg.eig(sigma)
+        e_vals, e_vecs = scipy.linalg.eig(X.dot(X.T))
         
         e_vals = np.maximum(0.0, np.real(e_vals))
         e_vecs = np.real(e_vecs)
