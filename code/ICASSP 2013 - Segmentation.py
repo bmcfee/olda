@@ -51,6 +51,9 @@ def evaluate_set(SETNAME, agg=True):
         
         for t, p in zip(truth, predictions):
             S = []
+            #S.extend(mir_eval.segment.boundary_detection(t[0], p[0], window=0.5, trim=False))
+            #S.extend(mir_eval.segment.boundary_detection(t[0], p[0], window=3.0, trim=False))
+            #S.extend(mir_eval.segment.boundary_deviation(t[0], p[0], trim=False))
             S.extend(mir_eval.segment.boundary_detection(t[0], p[0], window=0.5))
             S.extend(mir_eval.segment.boundary_detection(t[0], p[0], window=3.0))
             S.extend(mir_eval.segment.boundary_deviation(t[0], p[0]))
@@ -193,7 +196,8 @@ del ind_perfs_beatles['rfda']
 
 # <codecell>
 
-for idx in range(len(METRICS)):
+#for idx in range(len(METRICS)):
+for idx in [2, 5]:
     get_top_sig('BEATLES', ind_perfs_beatles, idx=idx)
     print
 
@@ -234,7 +238,8 @@ del ind_perfs_salami['rfda']
 
 # <codecell>
 
-for idx in range(len(METRICS)):
+#for idx in range(len(METRICS)):
+for idx in [2, 5]:
     get_top_sig('SALAMI', ind_perfs_salami, idx=idx)
     print
 
