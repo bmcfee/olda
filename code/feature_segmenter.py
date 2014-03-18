@@ -14,7 +14,6 @@ import os
 import argparse
 
 import cPickle as pickle
-import numpy as np
 
 import segmenter
 
@@ -24,13 +23,6 @@ def features(input_song):
         data = pickle.load(f)
 
     return data['features'], data['segment_times'], data['beats']
-
-def get_num_segs(duration, MIN_SEG=10.0, MAX_SEG=45.0):
-
-    kmin = max(1, np.floor(duration / MAX_SEG).astype(int))
-    kmax = max(1, np.ceil(duration / MIN_SEG).astype(int))
-
-    return kmin, kmax
 
 def process_arguments():
     parser = argparse.ArgumentParser(description='Music segmentation with pre-computed features')
@@ -85,7 +77,7 @@ if __name__ == '__main__':
     if parameters['gnostic']:
         S           = segmenter.get_segments(X, kmin=len(Y)-1, kmax=len(Y))
     elif parameters['dynamic']:
-        kmin, kmax  = get_num_segs(beats[-1])
+        kmin, kmax  = segmenter.get_num_segs(beats[-1])
         S           = segmenter.get_segments(X, kmin=kmin, kmax=kmax)
     else:
         S           = segmenter.get_segments(X)

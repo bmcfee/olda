@@ -12,14 +12,19 @@ If run as a program, usage is:
 import sys
 import os
 import argparse
+import string
 
 import numpy as np
+import scipy.spatial
 import scipy.signal
 import scipy.linalg
+
+import sklearn.cluster
 
 # Requires librosa-develop 0.3 branch
 import librosa
 
+# Parameters for feature extraction and boundary detection
 SR          = 22050
 N_FFT       = 2048
 HOP_LENGTH  = 512
@@ -40,6 +45,10 @@ NOTE_RES    = 2                     # CQT filter resolution
 
 # mfcc, chroma, repetitions for each, and 4 time features
 __DIMENSION = N_MFCC + N_CHROMA + 2 * N_REP + 4
+
+
+# Parameters for structure labeling
+LABEL_K     = 3
 
 def features(filename):
     '''Feature-extraction for audio segmentation
@@ -270,21 +279,100 @@ def get_segments(X, kmin=8, kmax=32):
             
     return S_best
 
-def save_segments(outfile, S, beats):
+def label_build_affinity(X, k):
+
+    n, d = X.shape
+
+    # First, build the distance graph
+    D = scipy.spatial.distance.cdist(X, X)
+
+    # Estimate the bandwidth: median 1-nn distance
+    sigma = np.median(np.sort(D, axis=1)[:, 1])
+
+    # Build the affinity matrix
+    A = np.exp(-0.5 * (D / sigma)**2.0)
+
+    # Mask out everything except the k mutual nearest neighbors
+    KNN = librosa.segment.recurrence_matrix(X.T, k=k, sym=True)
+    # Add in the self-loop
+    KNN = KNN + np.eye(n)
+
+    return A * KNN
+
+def label_estimate_n_components(A):
+    ''' Takes in an affinity matrix and estimates the number of clusters by spectral
+    gap'''
+
+    n = len(A)
+
+    # Build the degree matrix
+    Dinv = A.sum(axis=1)**-1.0
+    
+    # Build the random-walk graph laplacian
+    L = np.eye(n) - (A * Dinv).T
+
+    # Get the spectrum
+    spectrum = scipy.linalg.eig(L)[0].real
+
+    # Sort in ascending order
+    spectrum.sort()
+
+    # Compute the largest spectral gap
+    return 1 + np.argmax(np.diff(spectrum))
+
+def label_segments(X, S):
+    '''Label the segments'''
+
+    # First, segment-sync the feature vectors
+    Xs = librosa.feature.sync(X, S, aggregate=np.mean).T
+
+    # Build the affinity matrix
+    # mutual 3nn linkage + gaussian weighting
+    A = label_build_affinity(Xs, LABEL_K)
+
+    # Estimate the number of clusters
+    n_labels = label_estimate_n_components(A)
+
+    # Build the clustering object
+    # C = Clusterer()
+    # seg_ids = C.fit_predict(Xs.T)
+    C = sklearn.cluster.SpectralClustering(n_clusters=n_labels, 
+                                            affinity='precomputed')
+
+    seg_ids = C.fit_predict(A)
+
+    print X.shape, A.shape, len(S), len(seg_ids)
+    # Map ids to letters
+    labels = [string.ascii_uppercase[idx] for idx in seg_ids]
+
+    return labels
+
+def save_segments(outfile, S, beats, labels=None):
+
+    if labels is None:
+        labels = [('Seg#%03d' % idx) for idx in range(1, len(S))]
 
     times = beats[S]
     with open(outfile, 'w') as f:
-        for idx, (start, end) in enumerate(zip(times[:-1], times[1:]), 1):
-            f.write('%.3f\t%.3f\tSeg#%03d\n' % (start, end, idx))
+        for idx, (start, end, lab) in enumerate(zip(times[:-1], times[1:], labels), 1):
+            f.write('%.3f\t%.3f\t%s\n' % (start, end, lab))
     
     pass
 
 def process_arguments():
     parser = argparse.ArgumentParser(description='Music segmentation')
 
-    parser.add_argument(    '-t',
-                            '--transform',
-                            dest    =   'transform',
+    parser.add_argument(    '-b',
+                            '--boundary-transform',
+                            dest    =   'transform_boundary',
+                            required = False,
+                            type    =   str,
+                            help    =   'npy file containing the linear projection',
+                            default =   None)
+
+    parser.add_argument(    '-l',
+                            '--label-transform',
+                            dest    =   'transform_label',
                             required = False,
                             type    =   str,
                             help    =   'npy file containing the linear projection',
@@ -325,18 +413,28 @@ if __name__ == '__main__':
 
     X, beats    = features(parameters['input_song'])
 
-    # Load the transformation
-    W           = load_transform(parameters['transform'])
-    print '\tapplying transformation...'
-    X           = W.dot(X)
+    # Load the boundary transformation
+    W_bound     = load_transform(parameters['transform_boundary'])
+    print '\tapplying boundary transformation...'
+    X_bound           = W_bound.dot(X)
 
     # Find the segment boundaries
     print '\tpredicting segments...'
     kmin, kmax  = get_num_segs(beats[-1])
-    S           = get_segments(X, kmin=kmin, kmax=kmax)
+    S           = get_segments(X_bound, kmin=kmin, kmax=kmax)
+
+    # Load the labeling transformation
+    W_lab       = load_transform(parameters['transform_label'])
+    print '\tapplying label transformation...'
+    X_lab       = W_lab.dot(X)
+
+
+    # Get the label assignment
+    print '\tidentifying repeated sections...'
+    labels = label_segments(X_lab, S)
 
     # Output lab file
     print '\tsaving output to ', parameters['output_file']
-    save_segments(parameters['output_file'], S, beats)
+    save_segments(parameters['output_file'], S, beats, labels)
 
     pass
