@@ -279,7 +279,7 @@ def get_segments(X, kmin=8, kmax=32):
             
     return S_best
 
-def label_build_affinity(X, k):
+def __label_build_affinity(X, k):
 
     n, d = X.shape
 
@@ -298,6 +298,32 @@ def label_build_affinity(X, k):
     KNN = KNN + np.eye(n)
 
     return A * KNN
+
+def label_build_affinity(X, k, local=True):
+    n = len(X)
+
+    # Build the distance matrix
+    D = scipy.spatial.distance.cdist(X, X)**2
+
+    # Estimate the kernel bandwidth
+    Dsort = np.sort(D, axis=1)[:, k]
+    
+    if local:
+        sigma = np.outer(Dsort, Dsort)**0.5
+    else:
+        sigma = np.median(Dsort)
+    
+    # Compute the rbf kernel
+    A = np.exp(-0.5 * (D / sigma))
+    
+    # Mask out everything except the k mutual nearest neighbors
+    KNN = librosa.segment.recurrence_matrix(X.T, k=k, sym=True)
+    # Add in the self-loop
+    KNN = KNN + np.eye(n)
+
+    A = A * KNN
+    
+    return A
 
 def label_estimate_n_components(A):
     ''' Takes in an affinity matrix and estimates the number of clusters by spectral
@@ -341,7 +367,6 @@ def label_segments(X, S):
 
     seg_ids = C.fit_predict(A)
 
-    print X.shape, A.shape, len(S), len(seg_ids)
     # Map ids to letters
     labels = [string.ascii_uppercase[idx] for idx in seg_ids]
 
