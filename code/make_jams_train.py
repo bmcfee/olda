@@ -114,6 +114,8 @@ def make_dataset(n=None, n_jobs=16, rootpath='JAMS/', output_path='data/'):
     for d in data:
         if d is None:
             continue
+        if len(Y) <= 1:
+            continue
         X.append(d['features'])
         Y.append(d['segments'])
         B.append(d['beats'])
