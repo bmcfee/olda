@@ -63,7 +63,7 @@ def align_segmentation(filename, beat_times):
 
 def get_annotation(song, rootpath):
     song_num = os.path.splitext(os.path.split(song)[-1])[0]
-    return '%s/annotations/%s.jams' % (rootpath, song_num)
+    return '%s/full_annotations/%s.jams' % (rootpath, song_num)
 
 # <codecell>
 
@@ -107,6 +107,8 @@ def make_dataset(n=None, n_jobs=16, rootpath='JAMS/', output_path='data/'):
     files = sorted(files)
     if n is None:
         n = len(files)
+
+    print n
 
     data = Parallel(n_jobs=n_jobs)(delayed(import_data)(song, rootpath, output_path) for song in files[:n])
     
