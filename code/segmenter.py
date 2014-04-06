@@ -443,6 +443,11 @@ if __name__ == '__main__':
     print '\tapplying boundary transformation...'
     X_bound           = W_bound.dot(X)
 
+    #     TODO:   2014-04-02 18:08:15 by Brian McFee <brm2132@columbia.edu>
+    #   migrate W into get_segments
+    # add a cmdline switch for pruning selection mode
+    # add spectral gap pruning selector
+
     # Find the segment boundaries
     print '\tpredicting segments...'
     kmin, kmax  = get_num_segs(beats[-1])

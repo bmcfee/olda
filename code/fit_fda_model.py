@@ -81,6 +81,8 @@ def make_train(X, Y):
     label   = 0
 
     for (i, (Xi, Yi)) in enumerate(itertools.izip(X, Y)):
+        if len(Yi) <= 1:
+            continue
         for seg_start, seg_end in zip(Yi[:-1], Yi[1:]):
             X_train.extend(list(Xi.T[seg_start:seg_end]))
             Y_train.extend( (seg_end - seg_start) * [label])

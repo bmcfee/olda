@@ -71,6 +71,9 @@ class OLDA(BaseEstimator, TransformerMixin):
             prev_mean       = None
             prev_length     = None
             
+            if len(yi) <= 1:
+                continue
+
             if self.scatter_within_ is None:
                 # First round: initialize
                 d, n = xi.shape

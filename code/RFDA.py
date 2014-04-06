@@ -68,6 +68,9 @@ class RFDA(BaseEstimator, TransformerMixin):
         
         for (xi, yi) in itertools.izip(X, Y):
             
+            if len(yi) <= 1:
+                continue
+
             if self.scatter_within_ is None:
                 # First round: initialize
                 d, n = xi.shape
