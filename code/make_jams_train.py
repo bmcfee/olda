@@ -133,4 +133,4 @@ if __name__ == '__main__':
     output_path = sys.argv[2]
     X, Y, B, T, F, L = make_dataset(rootpath=salami_path, output_path=output_path)
     with open('%s/jams_data.pickle' % output_path, 'w') as f:
-        pickle.dump( (X, Y, B, T, F, L), f)
+        pickle.dump( (X, Y, B, T, F, L), f, protocol=-1)
