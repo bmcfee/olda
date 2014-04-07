@@ -52,7 +52,7 @@ def align_segmentation(filename, beat_times):
 
     # Pull out the segment start times
     segment_beats = list(segment_beats)
-    segment_times_out = np.asarray(segment_times_out)[:, 0].squeeze().reshape((-1, 1))
+    segment_times_out = np.asarray(segment_times_out)[:, 0].squeeze()
 
     if segment_times_out.ndim == 0:
         segment_times_out = segment_times_out[np.newaxis]
