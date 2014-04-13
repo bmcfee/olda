@@ -49,6 +49,9 @@ def align_segmentation(filename, beat_times):
     # Map beats to segments
     beat_segment_ids  = librosa.util.match_intervals(beat_intervals, segment_times)
 
+    # Force a 0-0 match
+    beat_segment_ids[0] = 0
+
     # Now, find the first beat mapping to each segment
     segment_beats = []
     segment_times_out = []
