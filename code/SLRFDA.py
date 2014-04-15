@@ -8,7 +8,7 @@ import numpy as np
 import scipy.linalg
 from sklearn.base import BaseEstimator, TransformerMixin
 
-class RFDA(BaseEstimator, TransformerMixin):
+class SLRFDA(BaseEstimator, TransformerMixin):
 
     def __init__(self, sigma=1e-4):
         '''Ordinal linear discriminant analysis
