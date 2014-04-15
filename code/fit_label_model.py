@@ -17,6 +17,7 @@ from joblib import Parallel, delayed
 
 from SLRFDA import SLRFDA
 
+import warnings
 
 SIGMA_RANGE = 10.0**np.arange(-8, 8)
 
@@ -125,6 +126,7 @@ def fit_model(X, Y, T, n_jobs):
     return model.components_
 
 if __name__ == '__main__':
+    warnings.simplefilter('ignore')
     parameters = process_arguments(sys.argv[1:])
 
     # Load the input data
