@@ -75,7 +75,7 @@ def score_model(model, x, y, t):
 
     return s_f
 
-def process_arguments():
+def process_arguments(args):
     parser = argparse.ArgumentParser(description='Learn a structure label RFDA model')
 
     parser.add_argument(    'input_file',
@@ -96,7 +96,7 @@ def process_arguments():
                             help    =   'Number of parallel jobs')
 
 
-    return vars(parser.parse_args(sys.argv[1:]))
+    return vars(parser.parse_args(args))
 
 def fit_model(X, Y, T, n_jobs):
 
