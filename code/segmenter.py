@@ -416,14 +416,7 @@ def get_num_segs(duration, MIN_SEG=10.0, MAX_SEG=45.0):
 
     return kmin, kmax
 
-if __name__ == '__main__':
-
-    parameters = process_arguments()
-
-    # Load the features
-    print '- ', os.path.basename(parameters['input_song'])
-
-    X, beats    = features(parameters['input_song'])
+def do_segmentation(X, beats, parameters):
 
     # Load the boundary transformation
     W_bound     = load_transform(parameters['transform_boundary'])
@@ -453,3 +446,13 @@ if __name__ == '__main__':
     save_segments(parameters['output_file'], S, beats, labels)
 
     pass
+
+if __name__ == '__main__':
+
+    parameters = process_arguments()
+
+    # Load the features
+    print '- ', os.path.basename(parameters['input_song'])
+    X, beats    = features(parameters['input_song'])
+
+    do_segmentation(X, beats, parameters)
