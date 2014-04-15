@@ -256,24 +256,36 @@ def clustering_cost(X, boundaries):
 
     return cost
 
-def get_k_segments(X, k):
+def spectral_cost(X, boundaries):
+    A = label_build_affinity(librosa.feature.sync(X, boundaries).T, LABEL_K)
+    _, cost = label_estimate_n_components(A)
+    
+    return -cost
+
+def get_k_segments(X_bound, X_lab, k, use_spectral):
     
     # Step 1: run ward
-    boundaries = librosa.segment.agglomerative(X, k)
-    
-    boundaries = np.unique(np.concatenate(([0], boundaries, [X.shape[1]])))
+    boundaries = librosa.segment.agglomerative(X_bound, k)
+    boundaries = np.unique(np.concatenate(([0], boundaries, [X_bound.shape[1]])))
     
     # Step 2: compute cost
-    cost = clustering_cost(X, boundaries)
+    if use_spectral:
+        cost = spectral_cost(X_lab, boundaries)
+    else:
+        cost = clustering_cost(X_bound, boundaries)
         
     return boundaries, cost
 
-def get_segments(X, kmin=8, kmax=32):
+def get_segments(X, W_bound, W_lab, use_spectral, kmin=8, kmax=32):
     
+    X_bound = W_bound.dot(X)
+    X_lab   = W_lab.dot(X)
+
     cost_min = np.inf
     S_best = []
     for k in range(kmax, kmin, -1):
-        S, cost = get_k_segments(X, k)
+        S, cost = get_k_segments(X_bound, X_lab, k, use_spectral)
+
         if cost < cost_min:
             cost_min = cost
             S_best = S
@@ -293,9 +305,7 @@ def label_build_affinity(X, k, local=False):
     # Build the distance matrix
     D = scipy.spatial.distance.cdist(X, X)**2
 
-    
     # Estimate the kernel bandwidth
-    #Dsort = np.sort(D, axis=1)[:, k]
     Dsort = np.sort(D, axis=1)[:, 1]
     
     if local:
@@ -371,36 +381,6 @@ def save_segments(outfile, S, beats, labels=None):
     
     pass
 
-def process_arguments():
-    parser = argparse.ArgumentParser(description='Music segmentation')
-
-    parser.add_argument(    '-b',
-                            '--boundary-transform',
-                            dest    =   'transform_boundary',
-                            required = False,
-                            type    =   str,
-                            help    =   'npy file containing the linear projection',
-                            default =   None)
-
-    parser.add_argument(    '-l',
-                            '--label-transform',
-                            dest    =   'transform_label',
-                            required = False,
-                            type    =   str,
-                            help    =   'npy file containing the linear projection',
-                            default =   None)
-
-    parser.add_argument(    'input_song',
-                            action  =   'store',
-                            help    =   'path to input audio data')
-
-    parser.add_argument(    'output_file',
-                            action  =   'store',
-                            help    =   'path to output segment file')
-
-    return vars(parser.parse_args(sys.argv[1:]))
-
-
 def load_transform(transform_file):
 
     if transform_file is None:
@@ -420,32 +400,61 @@ def do_segmentation(X, beats, parameters):
 
     # Load the boundary transformation
     W_bound     = load_transform(parameters['transform_boundary'])
-    print '\tapplying boundary transformation...'
-    X_bound           = W_bound.dot(X)
+    # Load the labeling transformation
+    W_lab       = load_transform(parameters['transform_label'])
 
     # add a cmdline switch for pruning selection mode
-    # add spectral gap pruning selector
 
     # Find the segment boundaries
     print '\tpredicting segments...'
     kmin, kmax  = get_num_segs(beats[-1])
-    S           = get_segments(X_bound, kmin=kmin, kmax=kmax)
-
-    # Load the labeling transformation
-    W_lab       = load_transform(parameters['transform_label'])
-    print '\tapplying label transformation...'
-    X_lab       = W_lab.dot(X)
-
+    S           = get_segments(X, W_bound, W_lab, parameters['use_spectral'], kmin=kmin, kmax=kmax)
 
     # Get the label assignment
     print '\tidentifying repeated sections...'
-    labels = label_segments(librosa.feature.sync(X_lab, S))
+    labels = label_segments(librosa.feature.sync(W_lab.dot(X), S))
 
     # Output lab file
     print '\tsaving output to ', parameters['output_file']
     save_segments(parameters['output_file'], S, beats, labels)
 
     pass
+
+def process_arguments():
+    parser = argparse.ArgumentParser(description='Music segmentation')
+
+    parser.add_argument(    '-b',
+                            '--boundary-transform',
+                            dest    =   'transform_boundary',
+                            required = False,
+                            type    =   str,
+                            help    =   'npy file containing the linear projection',
+                            default =   None)
+
+    parser.add_argument(    '-l',
+                            '--label-transform',
+                            dest    =   'transform_label',
+                            required = False,
+                            type    =   str,
+                            help    =   'npy file containing the linear projection',
+                            default =   None)
+
+    parser.add_argument(    '-s', 
+                            '--spectral-gap',
+                            dest    = 'use_spectral',
+                            default = False,
+                            action  = 'store_true',
+                            help    = 'Use the spectral gap heuristic for pruning')
+
+    parser.add_argument(    'input_song',
+                            action  =   'store',
+                            help    =   'path to input audio data')
+
+    parser.add_argument(    'output_file',
+                            action  =   'store',
+                            help    =   'path to output segment file')
+
+    return vars(parser.parse_args(sys.argv[1:]))
 
 if __name__ == '__main__':
 
