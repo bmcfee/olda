@@ -29,7 +29,7 @@ if __name__ == '__main__':
     X, Y, beats     = features(parameters['input_song'])
 
     # Load the boundary transformation
-    W_bound         = segmenter.load_transform(parameters['transform'])
+    W_bound         = segmenter.load_transform(parameters['transform_boundary'])
     print '\tapplying transformation...'
     X_bound         = W_bound.dot(X)
 
