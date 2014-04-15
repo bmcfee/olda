@@ -70,7 +70,7 @@ def score_model(model, x, y, t):
     else:
         xt = x
 
-    estimation = segmenter.label_segments(xt)
+    estimation = segmenter.label_segments(xt.T)
     s_over, s_under, s_f = mir_eval.segment.frame_clustering_nce(t, y, t, estimation)
 
     return s_f

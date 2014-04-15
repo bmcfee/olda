@@ -50,6 +50,9 @@ __DIMENSION = N_MFCC + N_CHROMA + 2 * N_REP + 4
 # Parameters for structure labeling
 LABEL_K     = 3
 
+SEGMENT_NAMES = list(string.ascii_uppercase)
+SEGMENT_NAMES.extend(['A%s' % x for x in string.ascii_lowercase])
+
 def features(filename):
     '''Feature-extraction for audio segmentation
     Arguments:
@@ -279,34 +282,21 @@ def get_segments(X, kmin=8, kmax=32):
             
     return S_best
 
-def __label_build_affinity(X, k):
-
-    n, d = X.shape
-
-    # First, build the distance graph
-    D = scipy.spatial.distance.cdist(X, X)
-
-    # Estimate the bandwidth: median 1-nn distance
-    sigma = np.median(np.sort(D, axis=1)[:, 1])
-
-    # Build the affinity matrix
-    A = np.exp(-0.5 * (D / sigma)**2.0)
-
-    # Mask out everything except the k mutual nearest neighbors
-    KNN = librosa.segment.recurrence_matrix(X.T, k=k, sym=True)
-    # Add in the self-loop
-    KNN = KNN + np.eye(n)
-
-    return A * KNN
-
-def label_build_affinity(X, k, local=True):
+def label_build_affinity(X, k, local=False):
     n = len(X)
-
+    
+    k = max(k, 1 + int(np.log2(n)))
+    
+    # Sanity-check
+    k = min(k, n-1)
+    
     # Build the distance matrix
     D = scipy.spatial.distance.cdist(X, X)**2
 
+    
     # Estimate the kernel bandwidth
-    Dsort = np.sort(D, axis=1)[:, k]
+    #Dsort = np.sort(D, axis=1)[:, k]
+    Dsort = np.sort(D, axis=1)[:, 1]
     
     if local:
         sigma = np.outer(Dsort, Dsort)**0.5
@@ -318,6 +308,7 @@ def label_build_affinity(X, k, local=True):
     
     # Mask out everything except the k mutual nearest neighbors
     KNN = librosa.segment.recurrence_matrix(X.T, k=k, sym=True)
+    
     # Add in the self-loop
     KNN = KNN + np.eye(n)
 
@@ -326,8 +317,7 @@ def label_build_affinity(X, k, local=True):
     return A
 
 def label_estimate_n_components(A):
-    ''' Takes in an affinity matrix and estimates the number of clusters by spectral
-    gap'''
+    ''' Takes in an affinity matrix and estimates the number of clusters by spectral gap'''
 
     n = len(A)
 
@@ -343,33 +333,30 @@ def label_estimate_n_components(A):
     # Sort in ascending order
     spectrum.sort()
 
+    spectral_gap = np.diff(spectrum)
+    
     # Compute the largest spectral gap
-    return 1 + np.argmax(np.diff(spectrum))
+    return 1 + np.argmax(spectral_gap), np.max(spectral_gap)
 
-def label_segments(X, S):
+def label_segments(X):
     '''Label the segments'''
 
-    # First, segment-sync the feature vectors
-    Xs = librosa.feature.sync(X, S, aggregate=np.mean).T
-
     # Build the affinity matrix
-    # mutual 3nn linkage + gaussian weighting
-    A = label_build_affinity(Xs, LABEL_K)
+    # mutual knn linkage + gaussian weighting
+    # bandwidth determined by distance to nearest neighbor
+    A = label_build_affinity(X.T, LABEL_K)
 
     # Estimate the number of clusters
-    n_labels = label_estimate_n_components(A)
+    n_labels, label_cost = label_estimate_n_components(A)
 
     # Build the clustering object
-    # C = Clusterer()
-    # seg_ids = C.fit_predict(Xs.T)
     C = sklearn.cluster.SpectralClustering(n_clusters=n_labels, 
                                             affinity='precomputed')
 
     seg_ids = C.fit_predict(A)
 
-    # Map ids to letters
-    labels = [string.ascii_uppercase[idx] for idx in seg_ids]
-
+    # Map ids to names
+    labels = [SEGMENT_NAMES[idx] for idx in seg_ids]
     return labels
 
 def save_segments(outfile, S, beats, labels=None):
@@ -461,7 +448,7 @@ if __name__ == '__main__':
 
     # Get the label assignment
     print '\tidentifying repeated sections...'
-    labels = label_segments(X_lab, S)
+    labels = label_segments(librosa.feature.sync(X_lab, S))
 
     # Output lab file
     print '\tsaving output to ', parameters['output_file']
