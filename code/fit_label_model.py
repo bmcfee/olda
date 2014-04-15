@@ -72,7 +72,7 @@ def score_model(model, x, y, t):
         xt = x
 
     estimation = segmenter.label_segments(xt.T)
-    s_over, s_under, s_f = mir_eval.boundary.nce(t, y, t, estimation)
+    s_over, s_under, s_f = mir_eval.structure.nce(t, y, t, estimation)
 
     return s_f
 
