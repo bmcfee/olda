@@ -47,17 +47,15 @@ def load_data(input_file):
 
     return X, Y, B, T
 
-def score_model(model, x, b, t):
+def score_model(W_bound, x, b, t):
 
     # First, transform the data
-    if model is not None:
-        xt = model.dot(x)
-    else:
-        xt = x
+    if W_bound is None:
+        W_bound = np.eye(x.shape[0])
 
     # Then, run the segmenter
     kmin, kmax = segmenter.get_num_segs(b[-1])
-    boundary_beats = segmenter.get_segments(xt, kmin=kmin, kmax=kmax)
+    boundary_beats = segmenter.get_segments(x, W_bound, W_bound, False, kmin=kmin, kmax=kmax)
 
     if len(boundary_beats) < 2 or len(t) < 2:
         return 0.0
