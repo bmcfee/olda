@@ -52,6 +52,8 @@ LABEL_K     = 3
 
 SEGMENT_NAMES = list(string.ascii_uppercase)
 SEGMENT_NAMES.extend(['A%s' % x for x in string.ascii_lowercase])
+SEGMENT_NAMES.extend(['B%s' % x for x in string.ascii_lowercase])
+SEGMENT_NAMES.extend(['C%s' % x for x in string.ascii_lowercase])
 
 def features(filename):
     '''Feature-extraction for audio segmentation
