@@ -54,7 +54,6 @@ SEGMENT_NAMES = list(string.ascii_uppercase)
 for x in string.ascii_uppercase:
     SEGMENT_NAMES.extend(['%s%s' % (x, y) for y in string.ascii_lowercase])
 
-print SEGMENT_NAMES
 def features(filename):
     '''Feature-extraction for audio segmentation
     Arguments:
