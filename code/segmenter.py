@@ -360,6 +360,8 @@ def label_segments(X):
     # Estimate the number of clusters
     n_labels, label_cost = label_estimate_n_components(A)
 
+    n_labels = min(len(A), max(2, n_labels))
+
     # Build the clustering object
     C = sklearn.cluster.SpectralClustering(n_clusters=n_labels, 
                                             affinity='precomputed')
@@ -392,8 +394,8 @@ def load_transform(transform_file):
     return W
 
 def get_num_segs(duration, MIN_SEG=10.0, MAX_SEG=45.0):
-    kmin = max(1, np.floor(duration / MAX_SEG).astype(int))
-    kmax = max(2, np.ceil(duration / MIN_SEG).astype(int))
+    kmin = max(2, np.floor(duration / MAX_SEG).astype(int))
+    kmax = max(3, np.ceil(duration / MIN_SEG).astype(int))
 
     return kmin, kmax
 
