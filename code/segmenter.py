@@ -261,7 +261,6 @@ def clustering_cost(X, boundaries):
 def spectral_cost(X, boundaries):
     A = label_build_affinity(librosa.feature.sync(X, boundaries).T, LABEL_K)
     _, cost = label_estimate_n_components(A)
-    
     return -max(cost, GAP_TAU)
 
 def get_k_segments(X_bound, X_lab, k, use_spectral):
@@ -288,7 +287,7 @@ def get_segments(X, W_bound, W_lab, use_spectral, kmin=8, kmax=32):
     for k in range(kmax, kmin, -1):
         S, cost = get_k_segments(X_bound, X_lab, k, use_spectral)
 
-        if cost < cost_min:
+        if cost <= cost_min:
             cost_min = cost
             S_best = S
         else:
