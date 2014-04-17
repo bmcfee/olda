@@ -49,6 +49,7 @@ __DIMENSION = N_MFCC + N_CHROMA + 2 * N_REP + 4
 
 # Parameters for structure labeling
 LABEL_K     = 3
+GAP_TAU     = 0.5
 
 SEGMENT_NAMES = list(string.ascii_uppercase)
 for x in string.ascii_uppercase:
@@ -261,7 +262,7 @@ def spectral_cost(X, boundaries):
     A = label_build_affinity(librosa.feature.sync(X, boundaries).T, LABEL_K)
     _, cost = label_estimate_n_components(A)
     
-    return -cost
+    return -max(cost, GAP_TAU)
 
 def get_k_segments(X_bound, X_lab, k, use_spectral):
     
