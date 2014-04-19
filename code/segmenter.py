@@ -363,7 +363,7 @@ def label_segments(X):
     # Estimate the number of clusters
     n_labels, label_cost = label_estimate_n_components(A)
 
-    n_labels = min(len(A), max(2, n_labels))
+    n_labels = min(len(A)-1, max(2, n_labels))
 
     # Build the clustering object
     C = sklearn.cluster.SpectralClustering(n_clusters=n_labels, 
