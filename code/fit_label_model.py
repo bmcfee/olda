@@ -72,10 +72,10 @@ def score_model(model, x, y, t):
         xt = x
 
     estimation = segmenter.label_segments(xt.T)
-#     s_over, s_under, s_f = mir_eval.structure.nce(t, y, t, estimation)
-#     return s_f
-    precision, recall, fmeasure = mir_eval.structure.pairwise(t, y, t, estimation)
-    return fmeasure
+    s_over, s_under, s_f = mir_eval.structure.nce(t, y, t, estimation)
+    return s_f
+#     precision, recall, fmeasure = mir_eval.structure.pairwise(t, y, t, estimation)
+#     return fmeasure
 
 def process_arguments(args):
     parser = argparse.ArgumentParser(description='Learn a structure label RFDA model')
