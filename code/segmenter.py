@@ -50,6 +50,7 @@ __DIMENSION = N_MFCC + N_CHROMA + 2 * N_REP + 4
 # Parameters for structure labeling
 LABEL_K     = 3
 GAP_TAU     = 0.5
+SIGMA_MIN   = 1e-4
 
 SEGMENT_NAMES = list(string.ascii_uppercase)
 for x in string.ascii_uppercase:
@@ -308,6 +309,8 @@ def label_build_affinity(X, k, local=False):
 
     # Estimate the kernel bandwidth
     Dsort = np.sort(D, axis=1)[:, 1]
+
+    Dsort = np.maximum(Dsort, SIGMA_MIN)
     
     if local:
         sigma = np.outer(Dsort, Dsort)**0.5
