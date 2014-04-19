@@ -68,7 +68,7 @@ def align_segmentation(filename, beat_times):
 
 def get_annotation(song, rootpath):
     song_num = os.path.splitext(os.path.split(song)[-1])[0]
-    return '%s/full_annotations/%s.jams' % (rootpath, song_num)
+    return '%s/full_annotations/%s.lab' % (rootpath, song_num)
 
 # <codecell>
 
