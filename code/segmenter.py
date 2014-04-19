@@ -308,7 +308,8 @@ def label_build_affinity(X, k, local=False):
     D = scipy.spatial.distance.cdist(X, X)**2
 
     # Estimate the kernel bandwidth
-    Dsort = np.sort(D, axis=1)[:, 1]
+#     Dsort = np.sort(D, axis=1)[:, 1]
+    Dsort = np.sort(D, axis=1)[:, k]
 
     Dsort = np.maximum(Dsort, SIGMA_MIN)
     
