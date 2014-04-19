@@ -396,7 +396,7 @@ def load_transform(transform_file):
 
     return W
 
-def get_num_segs(duration, MIN_SEG=10.0, MAX_SEG=45.0):
+def get_num_segs(duration, MIN_SEG=5.0, MAX_SEG=45.0):
     kmin = max(2, np.floor(duration / MAX_SEG).astype(int))
     kmax = max(3, np.ceil(duration / MIN_SEG).astype(int))
 
