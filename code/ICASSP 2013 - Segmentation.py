@@ -21,7 +21,7 @@ def load_annotations(path):
     
     files = sorted(glob.glob(path))
     
-    data = [mir_eval.io.load_annotation(f) for f in files]
+    data = [mir_eval.io.load_intervals(f) for f in files]
     
     return data
 
