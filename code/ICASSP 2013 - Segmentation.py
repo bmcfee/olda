@@ -356,19 +356,22 @@ make_rep_feature_plot(M[:,40:137])
 
 # <codecell>
 
+%matplotlib inline
+import matplotlib.pyplot as plt
 import librosa
 
 # <codecell>
 
 model_olda  = np.load('/home/bmcfee/git/olda/data/model_olda_beatles.npy')
-figure(figsize=(8,5))
+plt.figure(figsize=(8,5))
 librosa.display.specshow(model_olda, origin='upper')
-colorbar()
-yticks([])
-xticks([0, 32, 44, 76, 108], ['MFCC', 'Chroma', 'R-MFCC', 'R-Chroma', 'Time'], horizontalalignment='left')
+plt.colorbar()
+plt.yticks([])
+plt.xticks([0, 32, 44, 76, 108], ['MFCC', 'Chroma', 'R-MFCC', 'R-Chroma', 'Time'], horizontalalignment='left')
 
-tight_layout()
+plt.tight_layout()
 #savefig('/home/bmcfee/git/olda/model_olda_salami_w.png', format='png', pad_inches=0, transparent=True)
+plt.savefig('/home/bmcfee/git/olda/poster/model_olda_beatles_w.pdf', format='pdf', pad_inches=0, transparent=True)
 
 # <codecell>
 
