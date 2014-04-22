@@ -12,6 +12,8 @@ from joblib import Parallel, delayed
 import OLDA
 import segmenter
 
+WINDOW=3.0
+
 def process_arguments():
     parser = argparse.ArgumentParser(description='OLDA fit for music segmentation')
 
@@ -64,7 +66,7 @@ def score_model(W_bound, x, b, t):
 
     truth_intervals = mir_eval.util.boundaries_to_intervals(t)[0]
     pred_intervals = mir_eval.util.boundaries_to_intervals(boundary_times)[0]
-    score = mir_eval.boundary.detection(truth_intervals, pred_intervals, trim=True)[-1]
+    score = mir_eval.boundary.detection(truth_intervals, pred_intervals, window=WINDOW, trim=True)[-1]
 
     return score
 
