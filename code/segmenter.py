@@ -299,7 +299,7 @@ def get_segments(X, W_bound, W_lab, use_spectral, kmin=8, kmax=32):
 def label_build_affinity(X, k, local=False):
     n = len(X)
     
-    k = max(k, 1 + int(np.log2(n)))
+    #k = max(k, 1 + int(np.log2(n)))
     
     # Sanity-check
     k = min(k, n-1)
