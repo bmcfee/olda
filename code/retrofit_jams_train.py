@@ -127,6 +127,7 @@ def make_dataset(n=None, n_jobs=16, rootpath='JAMS/', output_path='data/'):
         if d is None:
             continue
         if len(d['segments']) <= 1:
+            print d['filename'], ' has %d segments' % len(d['segments'])
             continue
         X.append(d['features'])
         Y.append(d['segments'])
