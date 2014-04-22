@@ -12,7 +12,7 @@ from joblib import Parallel, delayed
 import OLDA
 import segmenter
 
-WINDOW=3.0
+WINDOW=0.5
 
 def process_arguments():
     parser = argparse.ArgumentParser(description='OLDA fit for music segmentation')
