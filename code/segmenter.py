@@ -96,6 +96,11 @@ def features(filename):
         if k < len(e_vals):
             e_vals = e_vals[:k]
             e_vecs = e_vecs[:, :k]
+        elif k > len(e_vals):
+            # Pad on zeros so we're k-by-k
+            e_vals = np.pad(e_vals, (0, k - len(e_vals)), mode='constant')
+            e_vecs = np.pad(e_vecs, [(0,0), (0, k - e_vecs.shape[1])], mode='constant')
+            pass
         
         # Normalize by the leading singular value of X
         Z = np.sqrt(e_vals.max())
