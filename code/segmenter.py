@@ -32,8 +32,8 @@ HOP_BEATS   = 64
 N_MELS      = 128
 FMAX        = 8000
 
-REP_WIDTH   = 3
-REP_FILTER  = 7
+REP_WIDTH   = 7
+REP_FILTER  = 17
 
 N_MFCC      = 32
 N_CHROMA    = 12
@@ -157,7 +157,7 @@ def features(filename):
         return librosa.logamplitude(librosa.util.normalize(C_to_Chr.dot(CQT)))
 
     # Latent factor repetition features
-    def repetition(X, metric='seuclidean'):
+    def repetition(X, metric='sqeuclidean'):
         R = librosa.segment.recurrence_matrix(X, 
                                             k=2 * int(np.ceil(np.sqrt(X.shape[1]))), 
                                             width=REP_WIDTH, 
