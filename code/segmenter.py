@@ -33,7 +33,7 @@ N_MELS      = 128
 FMAX        = 8000
 
 REP_WIDTH   = 7
-REP_FILTER  = 17
+REP_FILTER  = 9
 
 N_MFCC      = 32
 N_CHROMA    = 12
@@ -167,24 +167,21 @@ def features(filename):
                                             k=2 * int(np.ceil(np.sqrt(X.shape[1]))), 
                                             width=REP_WIDTH, 
                                             metric=metric,
-                                            sym=False).astype(np.float32)
+                                            sym=True).astype(np.float32)
 
-        # Skew the recurrence matrix
-        # Discard the lag=0 row
         R = librosa.segment.structure_feature(R)[1:]
-
-        # Median filter 
-        P = scipy.signal.medfilt2d(R, [1, REP_FILTER])
-
-        # Reflect about the lag=0 line, crop down to original dimensions
-        P = np.maximum(P, P[::-1])[:X.shape[1]]
-
+        
+        # Or the repetition matrix with its reverse
+        P = np.maximum(R, R[::-1])[:X.shape[1]]
+        
+        # Median filter to suppress blips
+        P = scipy.signal.medfilt2d(P, [1, REP_FILTER])
+        
         # Discard empty rows.  
         # This should give an equivalent SVD, but resolves some numerical instabilities.
-        P = P[P.any(axis=1)]
-
-        return compress_data(P, N_REP)
-
+        P = compress_data(P[P.any(axis=1)], N_REP)
+        
+        return P
 
     print '\t[1/6] loading audio'
     # Load the waveform
