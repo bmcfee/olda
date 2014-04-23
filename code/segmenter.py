@@ -169,11 +169,16 @@ def features(filename):
                                             metric=metric,
                                             sym=False).astype(np.float32)
 
-        P = scipy.signal.medfilt2d(librosa.segment.structure_feature(R), [1, REP_FILTER])
+        # Skew the recurrence matrix
+        # Discard the lag=0 row
+        R = librosa.segment.structure_feature(R)[1:]
+
+        # Median filter 
+        P = scipy.signal.medfilt2d(R, [1, REP_FILTER])
 
         # Reflect about the lag=0 line, crop down to original dimensions
         P = np.maximum(P, P[::-1])[:X.shape[1]]
-        
+
         # Discard empty rows.  
         # This should give an equivalent SVD, but resolves some numerical instabilities.
         P = P[P.any(axis=1)]
