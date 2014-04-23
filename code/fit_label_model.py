@@ -19,7 +19,7 @@ from SLRFDA import SLRFDA
 
 import warnings
 
-SIGMA_RANGE = 10.0**np.arange(-8, 1)
+SIGMA_RANGE = 10.0**np.arange(-8, 6)
 
 
 def data_to_matrix(data):
