@@ -455,6 +455,13 @@ def process_arguments():
                             help    =   'npy file containing the linear projection',
                             default =   None)
 
+    parser.add_argument(    '-a',
+                            '--aic',
+                            dest    = 'use_spectral',
+                            default = False,
+                            action  = 'store_false',
+                            help    = 'Use the AIC heuristic for pruning')
+
     parser.add_argument(    '-s', 
                             '--spectral-gap',
                             dest    = 'use_spectral',
