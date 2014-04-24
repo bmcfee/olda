@@ -49,7 +49,7 @@ __DIMENSION = N_MFCC + N_CHROMA + 2 * N_REP + 4
 
 # Parameters for structure labeling
 LABEL_K     = 3
-GAP_TAU     = 0.5
+GAP_TAU     = 0.0
 SIGMA_MIN   = 1e-4
 
 SEGMENT_NAMES = list(string.ascii_uppercase)
