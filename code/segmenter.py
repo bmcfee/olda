@@ -37,7 +37,7 @@ REP_FILTER  = 9
 
 N_MFCC      = 32
 N_CHROMA    = 12
-N_REP       = 32
+N_REP       = 8
 
 NOTE_MIN    = librosa.midi_to_hz(24) # 32Hz
 NOTE_NUM    = 84
