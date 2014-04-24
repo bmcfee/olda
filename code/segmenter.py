@@ -63,7 +63,6 @@ def rw_laplacian(A):
     L = np.eye(A.shape[0]) - Dinv.dot(A)
     return L
     
-
 def features(filename):
     '''Feature-extraction for audio segmentation
     Arguments:
@@ -144,6 +143,7 @@ def features(filename):
     def laplacian_eigenvectors(L, k):
         e_vals, e_vecs = scipy.linalg.eig(L)
         e_vals = e_vals.real
+        e_vecs = e_vecs.real
         idx = np.argsort(e_vals)
     
         e_vals = e_vals[idx]
