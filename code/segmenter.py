@@ -295,7 +295,7 @@ def get_k_segments(X_bound, X_lab, k, use_spectral):
         
     return boundaries, cost
 
-def get_segments(X, W_bound, W_lab, use_spectral, kmin=8, kmax=32):
+def get_segments(X, W_bound, W_lab, use_spectral, kmin=8, kmax=32, global_opt=True):
     
     X_bound = W_bound.dot(X)
     X_lab   = W_lab.dot(X)
@@ -308,7 +308,7 @@ def get_segments(X, W_bound, W_lab, use_spectral, kmin=8, kmax=32):
         if cost <= cost_min:
             cost_min = cost
             S_best = S
-        else:
+        elif not global_opt:
             break
             
     return S_best
@@ -427,7 +427,7 @@ def do_segmentation(X, beats, parameters):
     # Find the segment boundaries
     print '\tpredicting segments...'
     kmin, kmax  = get_num_segs(beats[-1])
-    S           = get_segments(X, W_bound, W_lab, parameters['use_spectral'], kmin=kmin, kmax=kmax)
+    S           = get_segments(X, W_bound, W_lab, parameters['use_spectral'], kmin=kmin, kmax=kmax, global_opt=parameters['global_opt'])
 
     # Get the label assignment
     print '\tidentifying repeated sections...'
@@ -471,6 +471,13 @@ def process_arguments():
                             default = False,
                             action  = 'store_true',
                             help    = 'Use the spectral gap heuristic for pruning')
+
+    parser.add_argument(    '-g', 
+                            '--global',
+                            dest    = 'global_opt',
+                            default = False,
+                            action  = 'store_true',
+                            help    = 'Pick the global optimum pruning, rather than local')
 
     parser.add_argument(    'input_song',
                             action  =   'store',
