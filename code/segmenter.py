@@ -473,11 +473,11 @@ def process_arguments():
                             help    = 'Use the spectral gap heuristic for pruning')
 
     parser.add_argument(    '-g', 
-                            '--global',
+                            '--greedy',
                             dest    = 'global_opt',
-                            default = False,
-                            action  = 'store_true',
-                            help    = 'Pick the global optimum pruning, rather than local')
+                            default = True,
+                            action  = 'store_false',
+                            help    = 'Greedy pruning, instead of global optimum')
 
     parser.add_argument(    'input_song',
                             action  =   'store',
