@@ -178,8 +178,8 @@ def features(filename):
         # De-skew
         Rf = librosa.segment.structure_feature(Sf, inverse=True)
 
-        # Symmetrize by force
-        Rf = 0.5 * (Rf + Rf.T)
+        # Binary-symmetrize by force
+        Rf = np.maximum(Rf, Rf.T)
         
         # We can jump to a random neighbor, or +- 1 step in time
         M = Rf + np.eye(Rf.shape[0], k=1) + np.eye(Rf.shape[0], k=-1)
