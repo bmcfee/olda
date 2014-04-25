@@ -33,11 +33,11 @@ N_MELS      = 128
 FMAX        = 8000
 
 REP_WIDTH   = 7
-REP_FILTER  = 9
+REP_FILTER  = 17
 
 N_MFCC      = 32
 N_CHROMA    = 12
-N_REP       = 8
+N_REP       = 32
 
 NOTE_MIN    = librosa.midi_to_hz(24) # 32Hz
 NOTE_NUM    = 84
