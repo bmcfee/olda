@@ -59,8 +59,10 @@ for x in string.ascii_uppercase:
 def rw_laplacian(A):
     '''Random-walk graph laplacian of a symmetric matrix'''
 
-    Dinv = np.diag(np.sum(A, axis=1)**-1.0)
-    L = np.eye(A.shape[0]) - Dinv.dot(A)
+    Dinv = np.sum(A, axis=1)**-1.0
+    Dinv[~np.isfinite(Dinv)] = 1.0
+
+    L = np.eye(A.shape[0]) - (Dinv * A.T).T
     return L
     
 def features(filename):
