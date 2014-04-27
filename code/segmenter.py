@@ -46,6 +46,8 @@ NOTE_RES    = 2                     # CQT filter resolution
 # mfcc, chroma, repetitions for each, and 4 time features
 __DIMENSION = N_MFCC + N_CHROMA + 2 * N_REP + 4
 
+SEG_MAX     = 30
+SEG_MIN     = 5
 
 # Parameters for structure labeling
 LABEL_K     = 3
@@ -64,6 +66,31 @@ def rw_laplacian(A):
 
     L = np.eye(A.shape[0]) - (Dinv * A.T).T
     return L
+
+def laplacian_eigenvectors(L, k, kmin=1):
+    '''Get the bottom k eigenvectors of L, starting at kmin'''
+
+    e_vals, e_vecs = scipy.linalg.eig(L)
+    e_vals = e_vals.real
+    e_vecs = e_vecs.real
+    idx = np.argsort(e_vals)
+
+    e_vals = e_vals[idx]
+    e_vecs = e_vecs[:, idx]
+    
+    # Trim the bottom eigenvalue/vector
+    e_vals = e_vals[kmin:]
+    e_vecs = e_vecs[:, kmin:]
+    
+    if k < len(e_vals):
+        e_vals = e_vals[:k]
+        e_vecs = e_vecs[:, :k]
+    elif k > len(e_vals):
+        # Pad on zeros so we're k-by-k
+        e_vals = np.pad(e_vals, (0, k - len(e_vals)), mode='constant')
+        e_vecs = np.pad(e_vecs, [(0,0), (0, k - e_vecs.shape[1])], mode='constant')
+    
+    return e_vecs[:, :k].T
     
 def features(filename):
     '''Feature-extraction for audio segmentation
@@ -142,31 +169,6 @@ def features(filename):
         Sf = Sf[:, REP_WIDTH:-REP_WIDTH]
         return Sf
 
-    def laplacian_eigenvectors(L, k):
-        e_vals, e_vecs = scipy.linalg.eig(L)
-        e_vals = e_vals.real
-        e_vecs = e_vecs.real
-        idx = np.argsort(e_vals)
-    
-        e_vals = e_vals[idx]
-        e_vecs = e_vecs[:, idx]
-        
-        # Trim the bottom eigenvalue/vector
-        e_vals = e_vals[1:]
-        e_vecs = e_vecs[:, 1:]
-       
-        if k < len(e_vals):
-            e_vals = e_vals[:k]
-            e_vecs = e_vecs[:, :k]
-        elif k > len(e_vals):
-            # Pad on zeros so we're k-by-k
-            e_vals = np.pad(e_vals, (0, k - len(e_vals)), mode='constant')
-            e_vecs = np.pad(e_vecs, [(0,0), (0, k - e_vecs.shape[1])], mode='constant')
-            pass
-
-        
-        return e_vecs[:, :k].T
-    
     # Latent factor repetition features
     def repetition(X, metric='sqeuclidean'):
         R = librosa.segment.recurrence_matrix(X, 
@@ -186,7 +188,7 @@ def features(filename):
         # We can jump to a random neighbor, or +- 1 step in time
         M = Rf + np.eye(Rf.shape[0], k=1) + np.eye(Rf.shape[0], k=-1)
 
-        # Get the random walk laplacian laplacian
+        # Get the random walk graph laplacian
         L = rw_laplacian(M)
 
         # Get the bottom k eigenvectors of L
@@ -411,9 +413,9 @@ def load_transform(transform_file):
 
     return W
 
-def get_num_segs(duration, MIN_SEG=10.0, MAX_SEG=45.0):
-    kmin = max(2, np.floor(duration / MAX_SEG).astype(int))
-    kmax = max(3, np.ceil(duration / MIN_SEG).astype(int))
+def get_num_segs(duration):
+    kmin = max(2, np.floor(duration / SEG_MAX).astype(int))
+    kmax = max(3, np.ceil(duration / SEG_MIN).astype(int))
 
     return kmin, kmax
 
@@ -475,11 +477,11 @@ def process_arguments():
                             help    = 'Use the spectral gap heuristic for pruning')
 
     parser.add_argument(    '-g', 
-                            '--global',
+                            '--greedy',
                             dest    = 'global_opt',
-                            default = False,
-                            action  = 'store_true',
-                            help    = 'Global optimum pruning, instead of greedy')
+                            default = True,
+                            action  = 'store_false',
+                            help    = 'Greedy pruning, instead of global')
 
     parser.add_argument(    'input_song',
                             action  =   'store',
