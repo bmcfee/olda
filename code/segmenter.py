@@ -46,8 +46,8 @@ NOTE_RES    = 2                     # CQT filter resolution
 # mfcc, chroma, repetitions for each, and 4 time features
 __DIMENSION = N_MFCC + N_CHROMA + 2 * N_REP + 4
 
-SEG_MAX     = 30
-SEG_MIN     = 5
+SEG_MAX     = 45
+SEG_MIN     = 10
 
 # Parameters for structure labeling
 LABEL_K     = 3
@@ -477,11 +477,10 @@ def process_arguments():
                             help    = 'Use the spectral gap heuristic for pruning')
 
     parser.add_argument(    '-g', 
-                            '--greedy',
                             dest    = 'global_opt',
-                            default = True,
-                            action  = 'store_false',
-                            help    = 'Greedy pruning, instead of global')
+                            default = False,
+                            action  = 'store_true',
+                            help    = 'Global pruning, instead of greedy')
 
     parser.add_argument(    'input_song',
                             action  =   'store',
