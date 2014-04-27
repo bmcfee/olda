@@ -361,9 +361,13 @@ def label_estimate_n_components(A):
     # Get the spectrum
     spectrum = scipy.linalg.eig(L)[0].real
 
+    # Box normalize
+    spectrum = spectrum / spectrum.max()
+
     # Sort in ascending order
     spectrum.sort()
 
+    # Compute the gap
     spectral_gap = np.diff(spectrum)
     
     # Compute the largest spectral gap
