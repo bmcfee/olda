@@ -111,7 +111,7 @@ def features(filename):
                                             fmax=FMAX, 
                                             aggregate=np.median)
 
-        bpm, beats = librosa.beat.beat_track(onsets=odf, sr=sr, hop_length=HOP_BEATS)
+        bpm, beats = librosa.beat.beat_track(onset_envelope=odf, sr=sr, hop_length=HOP_BEATS)
         
         return bpm, beats
 
@@ -204,8 +204,8 @@ def features(filename):
     
     # Beat-synchronous repetition features
     print '\t[6/6] generating structure features'
-    R_timbre = repetition(librosa.segment.stack_memory(M))
-    R_chroma = repetition(librosa.segment.stack_memory(C))
+    R_timbre = repetition(librosa.feature.stack_memory(M))
+    R_chroma = repetition(librosa.feature.stack_memory(C))
     
     # Stack it all up
     X = np.vstack([M, C, R_timbre, R_chroma, B, B / duration, N, N / len(beats)])
